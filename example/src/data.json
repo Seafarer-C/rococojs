@@ -1,0 +1,83 @@
+{
+  "materials": [
+    {
+      "src": "https://gd-hbimg.huaban.com/2c1276afa2950817350620e6ec3754ecc08d66f75fd82-AYEx9a_fw240webp",
+      "position": {
+        "x": 200,
+        "y": 200
+      },
+      "size": {
+        "width": 200,
+        "height": 200
+      },
+      "zIndex": 200
+    },
+    {
+      "src": "https://gd-hbimg.huaban.com/79028256243c8d71befc7594fdc3ffdf6548796a568f2-FeGQ8F_fw240webp",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "zIndex": 201
+    },
+    {
+      "src": "https://gd-hbimg.huaban.com/e02ba643c707c0ba659374ef3a053568d30efdc74a3ec-2UiaRL_fw240webp",
+      "position": {
+        "x": 400,
+        "y": 100
+      },
+      "zIndex": 202
+    },
+    {
+      "src": "https://gd-hbimg.huaban.com/adee810fa90f54630e731d4ece198e08e453bf4d8f230-c5goIy_fw240webp",
+      "position": {
+        "x": 0,
+        "y": 400
+      }
+    },
+    {
+      "src": "https://gd-hbimg.huaban.com/274c6178046d8d9387f68417327650645aff68617c775-08F5mh_fw658",
+      "position": {
+        "x": 400,
+        "y": 200
+      }
+    },
+    {
+      "src": "https://fabrie-prod.oss-cn-shanghai.aliyuncs.com/file/62c6536f812a036e5b3b028e/62de3a338df768e1901f2cf8/%E9%97%AE%E9%A2%98%E4%B8%8D%E5%A4%A7.svg",
+      "position": {
+        "x": 500,
+        "y": 100
+      },
+      "size": {
+        "width": 400,
+        "height": 400
+      }
+    }
+  ],
+  "marks": [
+    {
+      "type": "circle",
+      "materialId": "xxx",
+      "relativePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "type": "circle",
+      "materialId": "",
+      "relativePosition": {
+        "x": 0,
+        "y": 0
+      },
+      "position": {
+        "x": 300,
+        "y": 300
+      }
+    }
+  ]
+}

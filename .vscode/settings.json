@@ -1,0 +1,20 @@
+{
+    "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "vue"],
+    "stylelint.validate": ["css", "scss", "less", "vue", "html", "wxss"],
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true,
+        "source.fixAll.stylelint": true,
+        "source.fixAll.markdownlint": true
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    /* 让 vscode gitlens 能够找到 remote repo 地址 */
+    "gitlens.remotes": [
+        {
+            "domain": "git.gaoding.com",
+            "type": "GitHub"
+        }
+    ],
+    "github-enterprise.uri": "https://git.gaoding.com",
+}

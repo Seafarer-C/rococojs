@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "strictNullChecks": false,
+    "outDir": "dist",
+    "strict": false,
+    "declaration": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "jsx": "preserve",
+    "noUnusedParameters": false,
+    "noUnusedLocals": true,
+    "emitDecoratorMetadata": true,
+    "noImplicitAny": false,
+    "target": "es6",
+    "lib": ["ESNext", "dom", "dom.iterable"],
+    "skipLibCheck": true,
+    "sourceMap": false,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true
+  },
+  "mudoule": "esnext",
+  "lib": ["esnext"],
+  "exclude": ["node_modules", "dist"]
+}
