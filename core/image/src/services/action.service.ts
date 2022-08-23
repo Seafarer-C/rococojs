@@ -44,6 +44,7 @@ export class ActionService<T extends ISuperMarker> {
   // 注册拖拽事件
   private installDragEvent() {
     const vm = this;
+    const agent = vm.superMarker.canvasAgent;
     vm.superMarker.containView.addEventListener("mousedown", dragStart, true);
 
     let x = 0;
@@ -51,13 +52,13 @@ export class ActionService<T extends ISuperMarker> {
 
     function dragMove(e) {
       vm.superMarker.clearCanvas();
-      vm.superMarker.offset.x = vm.superMarker.currentOffset.x + (e.x - x);
-      vm.superMarker.offset.y = vm.superMarker.currentOffset.y + (e.y - y);
+      agent.offset.x = agent.currentOffset.x + (e.x - x);
+      agent.offset.y = agent.currentOffset.y + (e.y - y);
       vm.superMarker.drawCanvas();
     }
     function dragEnd() {
-      vm.superMarker.currentOffset.x = vm.superMarker.offset.x;
-      vm.superMarker.currentOffset.y = vm.superMarker.offset.y;
+      agent.currentOffset.x = agent.offset.x;
+      agent.currentOffset.y = agent.offset.y;
       window.removeEventListener("mousemove", dragMove);
       window.removeEventListener("mouseup", dragEnd);
     }

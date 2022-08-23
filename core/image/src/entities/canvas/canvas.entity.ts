@@ -1,3 +1,4 @@
+import { storeValue } from "../../context";
 import { ICanvasAgent } from "../../interfaces/canvas/canvas.interface";
 import { IShape } from "../../interfaces/shapes/shape.interface";
 
@@ -5,9 +6,27 @@ export class CanvasAgent implements ICanvasAgent {
   // canvas 实例
   canvas;
   // canvas 2d 上下文
+  @storeValue("canvasCtx")
   ctx;
-  width: number;
-  height: number;
+
+  private _width: number;
+  private _height: number;
+
+  get width() {
+    return this._width;
+  }
+  set width(w) {
+    this._width = w;
+    this.canvas.width = w;
+  }
+
+  get height() {
+    return this._height;
+  }
+  set height(h) {
+    this._height = h;
+    this.canvas.height = h;
+  }
 
   // 缩放比
   scale: number = 1;
@@ -19,22 +38,25 @@ export class CanvasAgent implements ICanvasAgent {
   scaleMax: number = 8;
   scaleMin: number = 0.4;
   // 光标位置
+  @storeValue("mousePosition")
   mousePosition: {
     x: number;
     y: number;
-  } = { x: undefined, y: undefined };
+  };
   // 偏移量
+  @storeValue("offset")
   offset: {
     x: number;
     y: number;
-  } = { x: 0, y: 0 };
+  };
+  @storeValue("currentOffset")
   currentOffset: {
     x: number;
     y: number;
-  } = { x: 0, y: 0 };
+  };
 
   // 画布中的元素
-  shapes: Array<IShape>;
+  shapes: Array<IShape> = [];
   // 高亮选中对象
   private _heightLightTarget: IShape;
 
@@ -46,7 +68,7 @@ export class CanvasAgent implements ICanvasAgent {
     this._drawCanvas();
   }
 
-  // 初始化画布，并注入上下文
+  // 初始化画布
   init() {
     this.canvas = document.createElement("canvas");
     this.canvas.style = `position: absolute; margin-top: 0; margin-left: 0;`;

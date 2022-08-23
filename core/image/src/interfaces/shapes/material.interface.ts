@@ -6,5 +6,5 @@ export interface IMaterial extends IShape {
   img?: HTMLImageElement;
   complete: Boolean;
 
-  load: (info: IMaterial & { ctx }) => Promise<void>;
+  load: (info: IMaterial) => Promise<void>;
 }

@@ -44,14 +44,14 @@ export class Mark extends Shape implements IMark {
       case "arrow":
         break;
       case "circle":
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, 100, 0, Math.PI * 2, true);
-        this.ctx.strokeStyle = "#FFA500";
-        this.ctx.stroke();
+        this.canvasCtx.beginPath();
+        this.canvasCtx.strokeStyle = "#FFA500";
+        this.canvasCtx.arc(x, y, 100, 0, Math.PI * 2, true);
+        this.canvasCtx.stroke();
         break;
       case "line":
-        this.ctx.beginPath();
-        this.ctx.closePath();
+        this.canvasCtx.beginPath();
+        this.canvasCtx.closePath();
         // 通过线条来绘制图形轮廓。
         // stroke()
         // 填充

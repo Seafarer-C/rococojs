@@ -1,5 +1,6 @@
 import type { IMaterial } from "./shapes/material.interface";
 import type { IMark } from "./shapes/mark.interface";
+import { ICanvasAgent } from "./canvas/canvas.interface";
 
 export interface ISuperMarker {
   width: number;
@@ -35,6 +36,7 @@ export interface ISuperMarker {
     y: number;
   };
 
+  canvasAgent: ICanvasAgent;
   // 素材资源
   materials: Array<IMaterial>;
   // 标注信息

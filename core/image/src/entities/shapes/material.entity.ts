@@ -22,9 +22,8 @@ export class Material extends Shape implements IMaterial {
   }
 
   // 加载图片素材
-  async load(info: IMaterial & { ctx }) {
-    const { id, src, position, size, zIndex, ctx } = info;
-    this.ctx = ctx;
+  async load(info: IMaterial) {
+    const { id, src, position, size, zIndex } = info;
     this.src = src;
     this.id = id || Math.round(Math.random() * 10000).toString();
     this.position = position || {
@@ -56,7 +55,7 @@ export class Material extends Shape implements IMaterial {
     if (this.complete) {
       const { x, y } = this.position;
       const { width, height } = this.size;
-      this.ctx.drawImage(this.img, x, y, width, height);
+      this.canvasCtx.drawImage(this.img, x, y, width, height);
     }
   }
 }

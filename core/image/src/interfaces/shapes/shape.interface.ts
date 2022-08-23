@@ -1,7 +1,7 @@
 export interface IShape {
   id?: string;
   // 当前画布的 2d 上下文
-  ctx;
+  canvasCtx;
   // 层级
   zIndex: number;
   // 处于画布中的位置
@@ -15,6 +15,8 @@ export interface IShape {
   };
   // 是否被选中高亮
   active: boolean;
+  // 光标是否在图形内
+  hover: boolean;
 
   // 加载
   load?: (...args) => any;
@@ -26,4 +28,9 @@ export interface IShape {
    * @param active 是否设置高亮
    */
   setHeightLight: (active: boolean) => void;
+
+  /**
+   * 移动图形
+   */
+  move: Function;
 }
