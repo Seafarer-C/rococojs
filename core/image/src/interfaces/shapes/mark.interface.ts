@@ -1,11 +1,7 @@
 import { IShape } from "./shape.interface";
 
-export type MarkType = "rect" | "circle" | "arrow" | "line" | "text";
-
 // 标注
 export interface IMark extends IShape {
-  // 标注类型
-  type: MarkType;
   // 标注对应的素材 id
   materialId?: string;
   // 与对应素材的相对位置

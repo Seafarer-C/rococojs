@@ -1,11 +1,16 @@
-import { storeValue } from "../../context";
-import { IShape } from "../../interfaces/shapes/shape.interface";
+import { contextValue } from "../../context";
+import type {
+  IShape,
+  ShapeType,
+} from "../../interfaces/shapes/shape.interface";
 
 export class Shape implements IShape {
   id?: string;
-  // 当前画布的 2d 上下文
-  @storeValue("canvasCtx")
-  canvasCtx;
+  // 元素类型
+  type: ShapeType;
+
+  @contextValue("mousePosition")
+  private mousePosition;
 
   // 层级
   zIndex: number;
@@ -17,25 +22,29 @@ export class Shape implements IShape {
   size: {
     width: number;
     height: number;
+  } = {
+    width: undefined,
+    height: undefined,
   };
-  // 是否被选中高亮
-  active: boolean = false;
+
   // 光标是否在图形内
-  hover: boolean = false;
+  get hover() {
+    const { x, y } = this.mousePosition;
+    const rangeX = [this.position.x, this.position.x + this.size.width];
+    const rangeY = [this.position.y, this.position.y + this.size.height];
+    console.log(rangeX, rangeY, this.mousePosition, this.position);
+    console.log(x >= rangeX[0], x <= rangeX[1], y >= rangeY[0], y <= rangeY[1]);
 
-  draw() {}
-
-  /**
-   * 高亮选中或者取消选中
-   * @param active 是否设置高亮
-   */
-  setHeightLight() {
-    this.active = true;
-    const { x, y } = this.position;
-    const { width, height } = this.size;
-    this.canvasCtx.strokeStyle = "blue";
-    this.canvasCtx.strokeRect(x, y, width, height);
+    if (x >= rangeX[0] && x <= rangeX[1] && y >= rangeY[0] && y <= rangeY[1]) {
+      return true;
+    }
+    return false;
   }
 
-  move() {}
+  /**
+   * 移动元素
+   */
+  move(position: { x: number; y: number }) {
+    this.position = position;
+  }
 }

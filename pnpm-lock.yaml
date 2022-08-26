@@ -10,6 +10,9 @@ importers:
       lodash-es: registry.npmmirror.com/lodash-es/4.17.21
       typescript: registry.npmmirror.com/typescript/4.7.4
 
+  core/2d:
+    specifiers: {}
+
   core/image:
     specifiers: {}
 
@@ -22,6 +25,7 @@ importers:
       '@babel/preset-env': ^7.16.5
       '@babel/preset-typescript': ^7.14.5
       '@babel/runtime': ^7.10.5
+      '@super-mark/2d': workspace:*
       '@super-mark/image': workspace:*
       babel-core: ^6.26.3
       babel-loader: ^8.2.2
@@ -39,6 +43,7 @@ importers:
       webpack-cli: ^4.9.2
       webpack-dev-server: ^4.8.1
     dependencies:
+      '@super-mark/2d': link:../core/2d
       '@super-mark/image': link:../core/image
     devDependencies:
       '@babel/core': registry.npmmirror.com/@babel/core/7.18.10

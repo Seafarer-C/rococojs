@@ -33,6 +33,7 @@
     "webpack-dev-server": "^4.8.1"
   },
   "dependencies": {
-    "@super-mark/image": "workspace:*"
+    "@super-mark/image": "workspace:*",
+    "@super-mark/2d": "workspace:*"
   }
 }

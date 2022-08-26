@@ -6,7 +6,7 @@ import { throttle, orderBy } from "lodash-es";
 import { ActionService } from "./action.service";
 import { CanvasAgent } from "../entities/canvas/canvas.entity";
 import { IShape } from "../interfaces/shapes/shape.interface";
-import { storeValue } from "../context";
+import { contextValue } from "../context";
 
 /**
  * 1. 使用一个 canvas 实现图层功能
@@ -31,12 +31,9 @@ export class SuperMarker {
     this.setAction("drag");
 
     setTimeout(() => {
+      this.setAction("move");
       this.setHeightLightTarget(this.materials[0]);
     }, 2000);
-
-    setTimeout(() => {
-      this.setHeightLightTarget(null);
-    }, 4000);
   }
 
   // 画布代理对象
@@ -69,7 +66,7 @@ export class SuperMarker {
   }
 
   // 光标位置
-  @storeValue("mousePosition")
+  @contextValue("mousePosition")
   mousePosition: {
     x: number;
     y: number;
@@ -162,19 +159,23 @@ export class SuperMarker {
       b = e.detail < 0;
     }
     if (b) {
-      this.canvasAgent.zoomIn(true);
+      this.zoomIn(true);
     } else {
-      this.canvasAgent.zoomOut(true);
+      this.zoomOut(true);
     }
     if (e.preventDefault) {
       e.preventDefault();
     }
     return false;
   }
+
   /********* 画布操作 *********/
 
   clearCanvas = this.canvasAgent.clearCanvas.bind(this.canvasAgent);
   resetCanvas = this.canvasAgent.resetCanvas.bind(this.canvasAgent);
+
+  zoomIn = this.canvasAgent.zoomIn.bind(this.canvasAgent);
+  zoomOut = this.canvasAgent.zoomOut.bind(this.canvasAgent);
 
   setAction = this.actionService.setAction.bind(this.actionService);
   setMarkType = this.actionService.setMarkType.bind(this.actionService);

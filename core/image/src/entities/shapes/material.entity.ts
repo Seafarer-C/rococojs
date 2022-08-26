@@ -3,14 +3,7 @@ import { Shape } from "./shape.entity";
 
 // 素材
 export class Material extends Shape implements IMaterial {
-  constructor() {
-    super();
-    this.size = this.size || {
-      width: 0,
-      height: 0,
-    };
-  }
-
+  type: "image" = "image";
   src: string;
   // 图片实例
   img?: HTMLImageElement;
@@ -25,7 +18,7 @@ export class Material extends Shape implements IMaterial {
   async load(info: IMaterial) {
     const { id, src, position, size, zIndex } = info;
     this.src = src;
-    this.id = id || Math.round(Math.random() * 10000).toString();
+    this.id = id || this.src;
     this.position = position || {
       x: 0,
       y: 0,
@@ -46,16 +39,5 @@ export class Material extends Shape implements IMaterial {
         reject(err);
       }
     });
-  }
-
-  /**
-   * 绘制图片素材
-   */
-  draw() {
-    if (this.complete) {
-      const { x, y } = this.position;
-      const { width, height } = this.size;
-      this.canvasCtx.drawImage(this.img, x, y, width, height);
-    }
   }
 }

@@ -1,5 +1,4 @@
 interface IStore {
-  canvasCtx: undefined;
   mousePosition: {
     x: number;
     y: number;
@@ -10,7 +9,6 @@ interface IStore {
 }
 
 export const store: IStore = {
-  canvasCtx: undefined,
   mousePosition: {
     x: undefined,
     y: undefined,

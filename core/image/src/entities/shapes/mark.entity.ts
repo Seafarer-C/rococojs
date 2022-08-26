@@ -1,6 +1,5 @@
 import type {
   IMark,
-  MarkType,
   ICircleProperty,
   IRectProperty,
   IArrowProperty,
@@ -11,8 +10,6 @@ import { Shape } from "./shape.entity";
 
 // 标注
 export class Mark extends Shape implements IMark {
-  // 标注类型
-  type: MarkType;
   // 标注对应的素材 id
   materialId?: string;
   // 与对应素材的相对位置
@@ -32,40 +29,6 @@ export class Mark extends Shape implements IMark {
   load(info) {
     for (const key in info) {
       this[key] = info[key];
-    }
-  }
-
-  /**
-   * 绘制标注
-   */
-  draw() {
-    const { x, y } = this.position;
-    switch (this.type) {
-      case "arrow":
-        break;
-      case "circle":
-        this.canvasCtx.beginPath();
-        this.canvasCtx.strokeStyle = "#FFA500";
-        this.canvasCtx.arc(x, y, 100, 0, Math.PI * 2, true);
-        this.canvasCtx.stroke();
-        break;
-      case "line":
-        this.canvasCtx.beginPath();
-        this.canvasCtx.closePath();
-        // 通过线条来绘制图形轮廓。
-        // stroke()
-        // 填充
-        // fill()
-        break;
-      case "rect":
-        // fillRect(x, y, width, height)
-
-        // strokeRect(x, y, width, height)
-
-        // clearRect(x, y, width, height)
-        break;
-      case "text":
-        break;
     }
   }
 }

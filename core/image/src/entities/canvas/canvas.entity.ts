@@ -1,12 +1,13 @@
-import { storeValue } from "../../context";
-import { ICanvasAgent } from "../../interfaces/canvas/canvas.interface";
-import { IShape } from "../../interfaces/shapes/shape.interface";
+import { contextValue } from "../../context";
+import type { ICanvasAgent } from "../../interfaces/canvas/canvas.interface";
+import { IMaterial } from "../../interfaces/shapes/material.interface";
+import type { IShape } from "../../interfaces/shapes/shape.interface";
 
 export class CanvasAgent implements ICanvasAgent {
   // canvas 实例
   canvas;
   // canvas 2d 上下文
-  @storeValue("canvasCtx")
+  @contextValue("canvasCtx")
   ctx;
 
   private _width: number;
@@ -29,34 +30,34 @@ export class CanvasAgent implements ICanvasAgent {
   }
 
   // 缩放比
-  scale: number = 1;
+  private scale: number = 1;
   // 上一次的缩放比
-  preScale: number = 1;
+  private preScale: number = 1;
   // 每次缩放的步长
-  scaleStep: number = 0.2;
+  private scaleStep: number = 0.2;
   // 最大缩放比
-  scaleMax: number = 8;
-  scaleMin: number = 0.4;
+  private scaleMax: number = 8;
+  private scaleMin: number = 0.4;
   // 光标位置
-  @storeValue("mousePosition")
-  mousePosition: {
+  @contextValue("mousePosition")
+  private mousePosition: {
     x: number;
     y: number;
   };
   // 偏移量
-  @storeValue("offset")
-  offset: {
+  @contextValue("offset")
+  private offset: {
     x: number;
     y: number;
   };
-  @storeValue("currentOffset")
-  currentOffset: {
+  @contextValue("currentOffset")
+  private currentOffset: {
     x: number;
     y: number;
   };
 
   // 画布中的元素
-  shapes: Array<IShape> = [];
+  private shapes: Array<IShape> = [];
   // 高亮选中对象
   private _heightLightTarget: IShape;
 
@@ -88,10 +89,47 @@ export class CanvasAgent implements ICanvasAgent {
     this.ctx.translate(this.offset.x, this.offset.y);
     this.ctx.scale(this.scale, this.scale);
     this.shapes.forEach((shape) => {
-      shape.draw();
+      const { x, y } = shape.position;
+      const { width, height } = shape.size;
+      switch (shape.type) {
+        case "image":
+          if ((shape as IMaterial).complete) {
+            const { x, y } = shape.position;
+            this.ctx.drawImage((shape as IMaterial).img, x, y, width, height);
+          }
+          break;
+        case "arrow":
+          break;
+        case "circle":
+          this.ctx.beginPath();
+          this.ctx.strokeStyle = "#FFA500";
+          this.ctx.arc(x, y, 100, 0, Math.PI * 2, true);
+          this.ctx.stroke();
+          break;
+        case "line":
+          this.ctx.beginPath();
+          this.ctx.closePath();
+          // 通过线条来绘制图形轮廓。
+          // stroke()
+          // 填充
+          // fill()
+          break;
+        case "rect":
+          // fillRect(x, y, width, height)
+
+          // strokeRect(x, y, width, height)
+
+          // clearRect(x, y, width, height)
+          break;
+        case "text":
+          break;
+      }
     });
     if (this.heightLightTarget) {
-      this.heightLightTarget.setHeightLight(true);
+      const { x, y } = this.heightLightTarget.position;
+      const { width, height } = this.heightLightTarget.size;
+      this.ctx.strokeStyle = "blue";
+      this.ctx.strokeRect(x, y, width, height);
     }
   }
   // 清空画布
@@ -100,7 +138,6 @@ export class CanvasAgent implements ICanvasAgent {
   }
   // 重制画布
   resetCanvas() {
-    this.clearCanvas();
     this._drawCanvas();
   }
 
