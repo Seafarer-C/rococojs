@@ -254,7 +254,6 @@ export class Canvas extends EventCenter {
   /** 渲染 upper-canvas，一般用于渲染拖蓝多选区域和涂鸦 */
   renderTop(): Canvas {
     let ctx = this.topCanvasCtx;
-    // let ctx = this.topCanvasCtx || this.mainCanvasCtx;
     this.clearContext(ctx);
 
     // 绘制拖蓝选区
@@ -309,7 +308,7 @@ export class Canvas extends EventCenter {
   }
 
   getPointer(e: MouseEvent): Pos {
-    let pointer = Util.getPointer(e, this.topCanvas);
+    let pointer = Util.getPointer(e, this.topCanvas, this.scale);
     return {
       x: pointer.x - this._offset.left,
       y: pointer.y - this._offset.top,
@@ -405,10 +404,6 @@ export class Canvas extends EventCenter {
     this.topCanvasCtx.scale(this.scale, this.scale);
     this.mainCanvasCtx.scale(this.scale, this.scale);
 
-    this._shapes.forEach((shape) => {
-      this._initObject(shape);
-    });
-
     // this.cacheCanvasCtx.translate(this._offset.left, this._offset.top);
     // this.topCanvasCtx.translate(this._offset.left, this._offset.top);
     // this.mainCanvasCtx.translate(this._offset.left, this._offset.top);
@@ -440,6 +435,7 @@ export class Canvas extends EventCenter {
     });
     Util.makeElementUnselectable(this.wrapperElement);
   }
+
   /** 创建上层画布，主要用于鼠标交互和涂鸦模式 */
   private _createUpperCanvas() {
     this.topCanvas = Util.createCanvasElement();
@@ -492,7 +488,6 @@ export class Canvas extends EventCenter {
     );
   }
   private _onMouseDown(e: MouseEvent) {
-    console.log(e);
     this.__onMouseDown(e);
     Util.addListener(document, "mouseup", this._onMouseUp);
     Util.addListener(document, "mousemove", this._onMouseMove);
@@ -515,7 +510,7 @@ export class Canvas extends EventCenter {
    */
   private _onMouseWheel(e: MouseEvent) {
     let pointer;
-    pointer = Util.getPointer(e, this.topCanvas);
+    pointer = Util.getPointer(e, this.topCanvas, this.scale);
 
     let b = true;
     if (e.wheelDelta) {
@@ -615,13 +610,11 @@ export class Canvas extends EventCenter {
       };
       // 让所有元素失去激活状态
       this.deactivateAllWithDispatch();
-      // this.renderAll();
     } else {
       // 如果是点选操作，接下来就要为各种变换做准备
       target.saveState();
 
       // 判断点击的是不是控制点
-      console.log(e, this._offset);
       corner = target._findTargetCorner(e, this._offset);
       // if ((corner = target._findTargetCorner(e, this._offset))) {
       //     this.onBeforeScaleRotate(target);
@@ -638,8 +631,6 @@ export class Canvas extends EventCenter {
         this.setActiveObject(target, e);
       }
       this._setupCurrentTransform(e, target);
-
-      // if (target) this.renderAll();
     }
     // 不论是拖蓝选区事件还是点选事件，都需要重新绘制
     // 拖蓝选区：需要把之前激活的物体取消选中态
@@ -666,7 +657,7 @@ export class Canvas extends EventCenter {
 
     if (groupSelector) {
       // 如果有拖蓝框选区域
-      pointer = Util.getPointer(e, this.topCanvas);
+      pointer = Util.getPointer(e, this.topCanvas, this.scale);
 
       groupSelector.left = pointer.x - this._offset.left - groupSelector.ex;
       groupSelector.top = pointer.y - this._offset.top - groupSelector.ey;
@@ -689,7 +680,7 @@ export class Canvas extends EventCenter {
       }
     } else {
       // 如果是旋转、缩放、平移等操作
-      pointer = Util.getPointer(e, this.topCanvas);
+      pointer = Util.getPointer(e, this.topCanvas, this.scale);
 
       let x = pointer.x,
         y = pointer.y;
@@ -1100,7 +1091,7 @@ export class Canvas extends EventCenter {
   private _setupCurrentTransform(e: MouseEvent, target: Shape) {
     let action = "drag",
       corner,
-      pointer = Util.getPointer(e, target.canvas.topCanvas);
+      pointer = Util.getPointer(e, target.canvas.topCanvas, this.scale);
 
     corner = target._findTargetCorner(e, this._offset);
     if (corner) {

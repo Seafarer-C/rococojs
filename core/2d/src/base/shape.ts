@@ -444,7 +444,7 @@ export class Shape extends EventCenter {
   _findTargetCorner(e: MouseEvent, offset: Offset): boolean | string {
     if (!this.hasControls || !this.active) return false;
 
-    let pointer = Util.getPointer(e, this.canvas.topCanvas),
+    let pointer = Util.getPointer(e, this.canvas.topCanvas, this.scale),
       ex = pointer.x - offset.left,
       ey = pointer.y - offset.top,
       xpoints,

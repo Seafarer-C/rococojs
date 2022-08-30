@@ -148,7 +148,7 @@ export class Util {
     return parseFloat(Number(number).toFixed(fractionDigits));
   }
   /** 获取鼠标的点击坐标，相对于页面左上角，注意不是画布的左上角，到时候会减掉 offset */
-  static getPointer(event: Event, upperCanvasEl: HTMLCanvasElement) {
+  static getPointer(event: Event, upperCanvasEl: HTMLCanvasElement, scale = 1) {
     event || (event = window.event);
 
     let element: HTMLElement | Document = event.target as
@@ -186,8 +186,8 @@ export class Util {
     }
 
     return {
-      x: Util.pointerX(event) + scrollLeft,
-      y: Util.pointerY(event) + scrollTop,
+      x: Util.pointerX(event) / scale + scrollLeft,
+      y: Util.pointerY(event) / scale + scrollTop,
     };
   }
   /** 根据矩阵反推出具体变换数值 */
