@@ -1,4 +1,4 @@
-// import { SuperMarkView } from "@super-mark/image";
+// import { SuperMarkView } from "@rococojs/image";
 // import { default as data } from "./data.json";
 
 // const markView = new SuperMarkView({
@@ -13,30 +13,37 @@
 
 // markView.loadMaterials(data.materials).loadMarks(data.marks);
 
-import { Rococo2DView, Rect, RococoImage } from "@super-mark/2d";
+import { Rococo2DView, Rect, RococoImage } from "@rococojs/2d";
+
 const canvas = new Rococo2DView(document.getElementById("canvas"), {});
 const rect = new Rect({
-  top: 200,
-  left: 100,
-  width: 100,
-  height: 100,
-  stroke: "red",
-  fill: "#ffffff00",
-  rx: 20,
-  ry: 20,
+  top: 100,
+  left: 450,
+  width: 800,
+  height: 60,
+  fill: "#ffffff",
+  rx: 10,
+  ry: 10,
+  // angle: 45,
 });
 
 const image = new Image();
 image.src =
-  "https://image-static.segmentfault.com/289/215/2892151181-5ab48de7b5013_fix732";
+  "https://st-gdx.dancf.com/gaodingx/4449/configs/activity/20220826-190627-0e58.png";
 const img = new RococoImage(image, {
-  top: 300,
-  left: 100,
-  width: 100,
-  height: 100,
-  angle: 45,
+  top: 400,
+  left: 500,
+  width: 900,
+  height: 500,
 });
 
 image.onload = () => {
   canvas.add(img).add(rect);
+};
+
+document.getElementById("zoom-in").onclick = () => {
+  canvas.zoomIn();
+};
+document.getElementById("zoom-out").onclick = () => {
+  canvas.zoomOut();
 };

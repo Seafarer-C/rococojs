@@ -12,6 +12,7 @@ import { EventCenter } from "../base/event";
 // import { contextValue } from "../base/context";
 
 const STROKE_OFFSET = 0.5;
+// 鼠标手势
 const cursorMap = {
   tr: "ne-resize",
   br: "se-resize",
@@ -38,7 +39,7 @@ enum CursorStyle {
 export class Canvas extends EventCenter {
   constructor(el: HTMLCanvasElement, options) {
     super();
-    // 初始化下层画布 lower-canvas
+    // 初始化下层画布 Main-canvas
     this._initStatic(el, options);
     // 初始化上层画布 upper-canvas
     this._initInteractive();
@@ -52,8 +53,17 @@ export class Canvas extends EventCenter {
   public width: number;
   /** 画布高度 */
   public height: number;
+
+  /**
+   * Window.devicePixelRatio
+   * Window 接口的**devicePixelRatio
+   *  返回当前显示设备的物理像素分辨率与CSS 像素分辨率之比。
+   *  此值也可以解释为像素大小的比率：一个 CSS 像素的大小与一个物理像素的大小。
+   *  简单来说，它告诉浏览器应使用多少屏幕实际像素来绘制单个 CSS 像素。
+   */
+  private dpr: number = window.devicePixelRatio;
   /** 包围 canvas 的外层 div 容器 */
-  public wrapperEl: HTMLElement;
+  public wrapperElement: HTMLElement;
   /** 下层 canvas 画布，主要用于绘制所有物体 */
   public mainCanvas: HTMLCanvasElement;
   /** 上层 canvas，主要用于监听鼠标事件、涂鸦模式、左键点击拖蓝框选区域 */
@@ -65,6 +75,7 @@ export class Canvas extends EventCenter {
   /** 缓冲层画布环境，方便某些情况方便计算用的，比如检测物体是否透明 */
   public cacheCanvas: HTMLCanvasElement;
   public cacheCanvasCtx: CanvasRenderingContext2D;
+
   public containerClass: string = "canvas-container";
 
   /** 记录最近一个激活的物体，可以优化点选过程，也就是点选的时候先判断是否是当前激活物体 */
@@ -77,9 +88,9 @@ export class Canvas extends EventCenter {
 
   // public relatedTarget;
   /** 选择区域框的背景颜色 */
-  public selectionColor: string = "rgba(100, 100, 255, 0.3)";
+  public selectionColor: string = "#0c99ff26";
   /** 选择区域框的边框颜色 */
-  public selectionBorderColor: string = "red";
+  public selectionBorderColor: string = "#0c99ff";
   /** 选择区域的边框大小，拖蓝的线宽 */
   public selectionLineWidth: number = 1;
   /** 左键拖拽的产生的选择区域，拖蓝区域 */
@@ -99,11 +110,21 @@ export class Canvas extends EventCenter {
   // private _previousOriginX;
   private _previousPointer: Pos;
 
-  /** 初始化 _shapes、lower-canvas 宽高、options 赋值 */
+  // 缩放比
+  private scale: number = 1;
+  // 上一次的缩放比
+  private preScale: number = 1;
+  // 每次缩放的步长
+  private scaleStep: number = 0.2;
+  // 最大缩放比
+  private scaleMax: number = 8;
+  private scaleMin: number = 0.4;
+
+  /** 初始化 _shapes、main-canvas 宽高、options 赋值 */
   private _initStatic(el: HTMLCanvasElement, options) {
     this._shapes = [];
 
-    this._createLowerCanvas(el);
+    this._createMainCanvas(el);
     this._initOptions(options);
 
     this.calcOffset();
@@ -119,31 +140,34 @@ export class Canvas extends EventCenter {
     this.mainCanvas.style.width = this.width + "px";
     this.mainCanvas.style.height = this.height + "px";
   }
+
+  /**
+   * 初始化视觉缩放比例
+   */
   private _initRetinaScaling() {
-    const dpr = window.devicePixelRatio;
-    this.__initRetinaScaling(this.mainCanvas, this.mainCanvasCtx, dpr);
-    this.__initRetinaScaling(this.topCanvas, this.topCanvasCtx, dpr);
-    this.__initRetinaScaling(this.cacheCanvas, this.cacheCanvasCtx, dpr);
+    const localInitRetinaScaling = (
+      canvas: HTMLCanvasElement,
+      ctx: CanvasRenderingContext2D
+    ) => {
+      const { width, height } = this;
+      // 重新设置 canvas 自身宽高大小和 css 大小。放大 canvas；css 保持不变，因为我们需要那么多的点
+      canvas.width = Math.round(width * this.dpr);
+      canvas.height = Math.round(height * this.dpr);
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      // 直接用 scale 放大整个坐标系，相对来说就是放大了每个绘制操作
+      ctx.scale(this.dpr, this.dpr);
+    };
+    localInitRetinaScaling(this.mainCanvas, this.mainCanvasCtx);
+    localInitRetinaScaling(this.topCanvas, this.topCanvasCtx);
+    localInitRetinaScaling(this.cacheCanvas, this.cacheCanvasCtx);
   }
-  private __initRetinaScaling(
-    canvas: HTMLCanvasElement,
-    ctx: CanvasRenderingContext2D,
-    dpr: number
-  ) {
-    const { width, height } = this;
-    // 重新设置 canvas 自身宽高大小和 css 大小。放大 canvas；css 保持不变，因为我们需要那么多的点
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
-    // 直接用 scale 放大整个坐标系，相对来说就是放大了每个绘制操作
-    ctx.scale(dpr, dpr);
-  }
-  /** 初始化交互层，也就是 upper-canvas */
+
+  /** 初始化交互层，也就是 top-canvas */
   private _initInteractive() {
     this._currentTransform = null;
     this._groupSelector = null;
-    this._initWrapperElement();
+    this._initwrapperElementement();
     this._createUpperCanvas();
     this._initEvents();
     this.calcOffset();
@@ -172,6 +196,7 @@ export class Canvas extends EventCenter {
   }
   clearContext(ctx: CanvasRenderingContext2D): Canvas {
     ctx && ctx.clearRect(0, 0, this.width, this.height);
+    // this.mainCanvas.width = this.width;
     return this;
   }
   /** 删除所有物体和清空画布 */
@@ -361,7 +386,7 @@ export class Canvas extends EventCenter {
     }
     return false;
   }
-  /** 大部分是在 lower-canvas 上先画未激活物体，再画激活物体 */
+  /** 大部分是在 Main-canvas 上先画未激活物体，再画激活物体 */
   renderAll(): Canvas {
     let ctx = this.mainCanvasCtx;
 
@@ -372,12 +397,30 @@ export class Canvas extends EventCenter {
     this.clearContext(ctx);
 
     this.emit("before:render");
+    this.mainCanvasCtx.save();
+    this.cacheCanvasCtx.save();
+    this.topCanvasCtx.save();
+
+    this.cacheCanvasCtx.scale(this.scale, this.scale);
+    this.topCanvasCtx.scale(this.scale, this.scale);
+    this.mainCanvasCtx.scale(this.scale, this.scale);
+
+    this._shapes.forEach((shape) => {
+      this._initObject(shape);
+    });
+
+    // this.cacheCanvasCtx.translate(this._offset.left, this._offset.top);
+    // this.topCanvasCtx.translate(this._offset.left, this._offset.top);
+    // this.mainCanvasCtx.translate(this._offset.left, this._offset.top);
 
     // 先绘制未激活物体，再绘制激活物体
     const sortedObjects = this._chooseObjectsToRender();
     for (let i = 0, len = sortedObjects.length; i < len; ++i) {
       this._draw(ctx, sortedObjects[i]);
     }
+    this.mainCanvasCtx.restore();
+    this.cacheCanvasCtx.restore();
+    this.topCanvasCtx.restore();
 
     this.emit("after:render");
 
@@ -385,28 +428,29 @@ export class Canvas extends EventCenter {
   }
 
   /** 因为我们用了两个 canvas，所以在 canvas 的外面再多包一个 div 容器 */
-  private _initWrapperElement() {
-    this.wrapperEl = Util.wrapElement(this.mainCanvas, "div", {
+  private _initwrapperElementement() {
+    this.wrapperElement = Util.wrapElement(this.mainCanvas, "div", {
       class: this.containerClass,
     });
-    Util.setStyle(this.wrapperEl, {
+    Util.setStyle(this.wrapperElement, {
       width: this.width + "px",
       height: this.height + "px",
       position: "relative",
+      "background-color": "#2e2e2e",
     });
-    Util.makeElementUnselectable(this.wrapperEl);
+    Util.makeElementUnselectable(this.wrapperElement);
   }
   /** 创建上层画布，主要用于鼠标交互和涂鸦模式 */
   private _createUpperCanvas() {
     this.topCanvas = Util.createCanvasElement();
-    this.topCanvas.className = "upper-canvas";
-    this.wrapperEl.appendChild(this.topCanvas);
+    Util.addClass(this.topCanvas, "upper-canvas");
+    this.wrapperElement.appendChild(this.topCanvas);
     this._applyCanvasStyle(this.topCanvas);
     this.topCanvasCtx = this.topCanvas.getContext("2d");
   }
-  private _createLowerCanvas(el: HTMLCanvasElement) {
+  private _createMainCanvas(el: HTMLCanvasElement) {
     this.mainCanvas = el;
-    Util.addClass(this.mainCanvas, "lower-canvas");
+    Util.addClass(this.mainCanvas, "main-canvas");
     this._applyCanvasStyle(this.mainCanvas);
     this.mainCanvasCtx = this.mainCanvas.getContext("2d");
   }
@@ -441,13 +485,14 @@ export class Canvas extends EventCenter {
     Util.addListener(window, "resize", this._onResize);
     Util.addListener(this.topCanvas, "mousedown", this._onMouseDown);
     Util.addListener(this.topCanvas, "mousemove", this._onMouseMove);
-    // Util.addListener(
-    //   this.topCanvas,
-    //   document.mozFullScreen ? "DOMMouseScroll" : "mousewheel",
-    //   this._onMouseWheel
-    // );
+    Util.addListener(
+      this.topCanvas,
+      document.mozFullScreen ? "DOMMouseScroll" : "mousewheel",
+      this._onMouseWheel
+    );
   }
   private _onMouseDown(e: MouseEvent) {
+    console.log(e);
     this.__onMouseDown(e);
     Util.addListener(document, "mouseup", this._onMouseUp);
     Util.addListener(document, "mousemove", this._onMouseMove);
@@ -478,58 +523,71 @@ export class Canvas extends EventCenter {
     } else {
       b = e.detail < 0;
     }
-    // this.mainCanvasCtx.translate(100, 100);
-    // this.mainCanvasCtx.scale(1.2, 1.2);
-    // this.renderAll();
-    // if (b) {
-    //   this.zoomIn(true);
-    // } else {
-    //   this.zoomOut(true);
-    // }
+
+    if (b) {
+      this.zoomIn(true);
+    } else {
+      this.zoomOut(true);
+    }
     // if (e.preventDefault) {
     //   e.preventDefault();
     // }
-    return false;
   }
-  //   private zoom(is_mouse) {
-  //     this.clearCanvas();
-  //     // 是否居中放大
-  //     if (!is_mouse) {
-  //       this.mousePosition.x = this.width / 2;
-  //       this.mousePosition.y = this.height / 2;
-  //     }
+  private zoom(is_mouse) {
+    // 是否居中放大
+    if (!is_mouse) {
+      // this._offset.left = this.width / 2;
+      // this._offset.top = this.height / 2;
+    }
 
-  //     this.offset.x =
-  //       this.mousePosition.x -
-  //       ((this.mousePosition.x - this.offset.x) * this.scale) / this.preScale;
-  //     this.offset.y =
-  //       this.mousePosition.y -
-  //       ((this.mousePosition.y - this.offset.y) * this.scale) / this.preScale;
-  // this.renderAll();
-  //     this.preScale = this.scale;
-  //     this._currentOffset.x = this.offset.x;
-  //     this.currentOffset.y = this.offset.y;
-  //   }
+    // this.offset.x =
+    //   this.mousePosition.x -
+    //   ((this.mousePosition.x - this.offset.x) * this.scale) / this.preScale;
+    // this.offset.y =
+    //   this.mousePosition.y -
+    //   ((this.mousePosition.y - this.offset.y) * this.scale) / this.preScale;
+    this.mainCanvas.width = this.width;
+    this.topCanvas.width = this.width;
+    this.cacheCanvas.width = this.width;
 
-  //   // 放大
-  //   zoomIn(is_mouse) {
-  //     if (this.scaleMax > this.scale) {
-  //       this.scale += this.scaleStep;
-  //       this.zoom(is_mouse);
-  //     } else {
-  //       return;
-  //     }
-  //   }
+    this.renderAll();
+    // this.preScale = this.scale;
+    // this._currentOffset.x = this.offset.x;
+    // this.currentOffset.y = this.offset.y;
+  }
 
-  //   // 缩小
-  //   zoomOut(is_mouse) {
-  //     if (this.scaleMin < this.scale) {
-  //       this.scale -= this.scaleStep;
-  //       this.zoom(is_mouse);
-  //     } else {
-  //       return;
-  //     }
-  //   }
+  // 放大
+  zoomIn(is_mouse = false) {
+    console.log(
+      this.scaleMin,
+      this.scale,
+      "zoomIn:",
+      this.scaleMin < this.scale
+    );
+    if (this.scaleMax > this.scale) {
+      this.scale += this.scaleStep;
+      this.zoom(is_mouse);
+    } else {
+      return;
+    }
+  }
+
+  // 缩小
+  zoomOut(is_mouse = false) {
+    console.log(
+      this.scaleMin,
+      this.scale,
+      "zoomOut:",
+      this.scaleMin < this.scale
+    );
+    if (this.scaleMin < this.scale) {
+      this.scale -= this.scaleStep;
+      this.zoom(is_mouse);
+    } else {
+      return;
+    }
+  }
+
   private _onResize() {
     this.calcOffset();
   }
@@ -563,6 +621,7 @@ export class Canvas extends EventCenter {
       target.saveState();
 
       // 判断点击的是不是控制点
+      console.log(e, this._offset);
       corner = target._findTargetCorner(e, this._offset);
       // if ((corner = target._findTargetCorner(e, this._offset))) {
       //     this.onBeforeScaleRotate(target);
@@ -1330,12 +1389,11 @@ export class Canvas extends EventCenter {
   }
 
   private _initObject(obj: Shape) {
-    console.log(obj);
     obj.setupState();
     obj.setCoords();
     obj.canvas = this;
-    this.emit("object:added", { target: obj });
-    obj.emit("added");
+    // this.emit("object:added", { target: obj });
+    // obj.emit("added");
   }
 
   // setZoom(value: number): Canvas {

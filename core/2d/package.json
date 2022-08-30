@@ -1,5 +1,5 @@
 {
-  "name": "@super-mark/2d",
+  "name": "@rococojs/2d",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",

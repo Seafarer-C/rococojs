@@ -41,9 +41,9 @@ export class Shape extends EventCenter {
   /** 物体缩放后的高度 */
   public currentHeight: number = 0;
   /** 激活态边框颜色 */
-  public borderColor: string = "red";
+  public borderColor: string = "#ba86fe";
   /** 激活态控制点颜色 */
-  public cornerColor: string = "red";
+  public cornerColor: string = "#ba86fe";
   /** 物体默认填充颜色 */
   public fill: string = "rgb(0,0,0)";
   /** 混合模式 globalCompositeOperation */
@@ -322,18 +322,10 @@ export class Shape extends EventCenter {
   drawAxis(ctx: CanvasRenderingContext2D) {
     ctx.save();
     const lengthRatio = 1.5;
-    const w = this.getWidth();
-    const h = this.getHeight();
     ctx.lineWidth = this.borderWidth;
     ctx.setLineDash([4 * lengthRatio, 3 * lengthRatio]);
     /** 画坐标轴的时候需要把 transform 变换中的 scale 效果抵消，这样才能画出原始大小的线条 */
     ctx.scale(1 / this.scaleX, 1 / this.scaleY);
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo((w / 2) * lengthRatio, 0);
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, (h / 2) * lengthRatio);
-    ctx.stroke();
     ctx.restore();
   }
   setupState() {
@@ -1215,6 +1207,10 @@ export class Shape extends EventCenter {
     }
     this[key] = value;
     return this;
+  }
+
+  get scale(): number {
+    return this.canvas ? this.canvas.scale : 1;
   }
   /** 获取当前大小，包含缩放效果 */
   getWidth(): number {

@@ -1,5 +1,5 @@
 {
-  "name": "@super-mark/image",
+  "name": "@rococojs/image",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
