@@ -13,9 +13,18 @@
 
 // markView.loadMaterials(data.materials).loadMarks(data.marks);
 
-import { Rococo2DView, Rect, RococoImage } from "@rococojs/2d";
+import { Rococo2DView, Rect, RococoImage, ZoomWidget } from "@rococojs/2d";
 
-const canvas = new Rococo2DView(document.getElementById("canvas"), {});
+const zoomWidget = new ZoomWidget().setStyle({
+  // "margin-top": "10px",
+  right: "0px",
+});
+
+const canvas = new Rococo2DView(document.getElementById("canvas"), {
+  width: 1600,
+  height: 600,
+  widgets: [zoomWidget],
+});
 const rect = new Rect({
   top: 100,
   left: 450,
@@ -39,11 +48,5 @@ const img = new RococoImage(image, {
 
 image.onload = () => {
   canvas.add(img).add(rect);
-};
-
-document.getElementById("zoom-in").onclick = () => {
-  canvas.zoomIn();
-};
-document.getElementById("zoom-out").onclick = () => {
-  canvas.zoomOut();
+  zoomWidget;
 };
