@@ -20,7 +20,7 @@ export default {
     let corner;
     rococoCanvas._previousPointer = pointer;
 
-    if (rococoCanvas._shouldClearSelection(e)) {
+    if (rococoCanvas.shouldClearSelection(e)) {
       // 如果是拖蓝选区事件
       rococoCanvas._groupSelector = {
         // 重置选区状态
@@ -37,9 +37,9 @@ export default {
 
       // 判断点击的是不是控制点
       corner = target._findTargetCorner(e, rococoCanvas._offset);
-      if (rococoCanvas._shouldHandleGroupLogic(e, target)) {
+      if (rococoCanvas.shouldHandleGroupLogic(e, target)) {
         // 如果是选中组
-        rococoCanvas._handleGroupLogic(e, target);
+        rococoCanvas.handleGroupLogic(e, target);
         target = rococoCanvas.getActiveGroup();
       } else {
         // 如果是选中单个物体
@@ -48,7 +48,7 @@ export default {
         }
         rococoCanvas.setActiveObject(target, e);
       }
-      rococoCanvas._setupCurrentTransform(e, target);
+      rococoCanvas.setupCurrentTransform(e, target);
     }
     // 不论是拖蓝选区事件还是点选事件，都需要重新绘制
     // 拖蓝选区：需要把之前激活的物体取消选中态
@@ -75,7 +75,7 @@ export default {
       target = rococoCanvas.findTarget(e);
 
       if (target) {
-        rococoCanvas._setCursorFromEvent(e, target);
+        rococoCanvas.setCursorFromEvent(e, target);
       } else {
         style.cursor = CursorStyle.default;
       }
@@ -92,30 +92,30 @@ export default {
 
       if (rococoCanvas._currentTransform.action === "rotate") {
         // 如果是旋转操作
-        rococoCanvas._rotateObject(x, y);
+        rococoCanvas.rotateObject(x, y);
       } else if (rococoCanvas._currentTransform.action === "scale") {
         // 如果是整体缩放操作
         if (e.shiftKey) {
           rococoCanvas._currentTransform.currentAction = "scale";
-          rococoCanvas._scaleObject(x, y);
+          rococoCanvas.scaleObject(x, y);
         } else {
           if (!reset && t.currentAction === "scale") {
-            rococoCanvas._resetCurrentTransform(e);
+            rococoCanvas.resetCurrentTransform(e);
           }
 
           rococoCanvas._currentTransform.currentAction = "scaleEqually";
-          rococoCanvas._scaleObject(x, y, "equally");
+          rococoCanvas.scaleObject(x, y, "equally");
         }
       } else if (rococoCanvas._currentTransform.action === "scaleX") {
         // 如果只是缩放 x
-        rococoCanvas._scaleObject(x, y, "x");
+        rococoCanvas.scaleObject(x, y, "x");
       } else if (rococoCanvas._currentTransform.action === "scaleY") {
         // 如果只是缩放 y
-        rococoCanvas._scaleObject(x, y, "y");
+        rococoCanvas.scaleObject(x, y, "y");
       } else {
         // 如果是拖拽物体
-        rococoCanvas._translateObject(x, y);
-        rococoCanvas._setCursor(CursorStyle.move);
+        rococoCanvas.translateObject(x, y);
+        rococoCanvas.setCursor(CursorStyle.move);
       }
 
       rococoCanvas.renderAll();
@@ -152,19 +152,19 @@ export default {
 
     if (rococoCanvas._groupSelector) {
       // 如果有拖蓝框选区域
-      rococoCanvas._findSelectedObjects(e);
+      rococoCanvas.findSelectedObjects(e);
     }
     let activeGroup = rococoCanvas.getActiveGroup();
     if (activeGroup) {
       //重新设置 激活组 中的物体
       activeGroup.setObjectsCoords();
       activeGroup.set("isMoving", false);
-      rococoCanvas._setCursor(CursorStyle.default);
+      rococoCanvas.setCursor(CursorStyle.default);
     }
     rococoCanvas._groupSelector = null;
     rococoCanvas.renderAll();
 
-    rococoCanvas._setCursorFromEvent(e, target);
+    rococoCanvas.setCursorFromEvent(e, target);
 
     next();
   },

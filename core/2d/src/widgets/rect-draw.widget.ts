@@ -43,7 +43,7 @@ export class RectDrawWidget extends Widget {
     <button id="rect-draw-widget">矩形</button>
   `;
 
-  // 是否正在绘制巨星
+  // 是否正在绘制矩形
   isDrawingRect = false;
 
   mouseDown({ e }, next) {
@@ -66,6 +66,6 @@ export class RectDrawWidget extends Widget {
   onClick() {
     console.log("开始绘制");
     console.log(this.rococoCanvas);
-    this.rococoCanvas._setCursor("crosshair");
+    this.rococoCanvas.setCursor("crosshair");
   }
 }

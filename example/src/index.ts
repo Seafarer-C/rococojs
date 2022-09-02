@@ -1,18 +1,3 @@
-// import { SuperMarkView } from "@rococojs/image";
-// import { default as data } from "./data.json";
-
-// const markView = new SuperMarkView({
-//   el: "view",
-//   width: 800,
-//   height: 800,
-// });
-
-// setTimeout(() => {
-//   // markView.setSize(document.body.offsetWidth, document.body.offsetHeight);
-// }, 2000);
-
-// markView.loadMaterials(data.materials).loadMarks(data.marks);
-
 import { Rococo2DView, Rect, RococoImage, ZoomWidget } from "@rococojs/2d";
 
 const zoomWidget = new ZoomWidget().setStyle({
@@ -25,15 +10,45 @@ const canvas = new Rococo2DView(document.getElementById("canvas"), {
   height: 600,
   widgets: [zoomWidget],
 });
-const rect = new Rect({
+const rect1 = new Rect({
   top: 100,
-  left: 450,
-  width: 800,
+  left: 100,
+  width: 60,
   height: 60,
-  fill: "#ffffff",
+  fill: "#1890ff",
   rx: 10,
   ry: 10,
-  // angle: 45,
+  angle: 45,
+});
+const rect2 = new Rect({
+  top: 100,
+  left: 200,
+  width: 60,
+  height: 60,
+  fill: "#1890ff",
+  rx: 10,
+  ry: 10,
+  angle: 45,
+});
+const rect3 = new Rect({
+  top: 100,
+  left: 300,
+  width: 60,
+  height: 60,
+  fill: "#1890ff",
+  rx: 10,
+  ry: 10,
+  angle: 45,
+});
+const rect4 = new Rect({
+  top: 100,
+  left: 400,
+  width: 60,
+  height: 60,
+  fill: "#1890ff",
+  rx: 10,
+  ry: 10,
+  angle: 45,
 });
 
 const image = new Image();
@@ -47,6 +62,6 @@ const img = new RococoImage(image, {
 });
 
 image.onload = () => {
-  canvas.add(img).add(rect);
+  canvas.add(img).add(rect1).add(rect2).add(rect3).add(rect4);
   zoomWidget;
 };

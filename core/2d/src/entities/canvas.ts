@@ -74,6 +74,8 @@ export class Canvas extends EventCenter {
   private _groupSelector: GroupSelector;
   /** 当前选中的组 */
   public _activeGroup: Group;
+  /** 当前正在绘制的图形 */
+  private _drawingShape: Shape;
 
   /** 画布中所有添加的物体 */
   private _shapes: Shape[] = [];
@@ -158,6 +160,12 @@ export class Canvas extends EventCenter {
     });
   }
 
+  private _initObject(obj: Shape) {
+    obj.setupState();
+    obj.setCoords();
+    obj.canvas = this;
+  }
+
   // 初始化主画布
   private _initMainCanvas() {
     this.mainCanvas = document.createElement("canvas");
@@ -210,19 +218,19 @@ export class Canvas extends EventCenter {
   // #region 事件系统
   /** 给上层画布增加鼠标事件 */
   private _initEvents() {
-    this.handleMouseDown = this.handleMouseDown.bind(this);
-    this.handleMouseMove = this.handleMouseMove.bind(this);
-    this.handleMouseUp = this.handleMouseUp.bind(this);
-    this.handleWindowResize = this.handleWindowResize.bind(this);
-    this.handleMouseWheel = this.handleMouseWheel.bind(this);
+    this._handleMouseDown = this._handleMouseDown.bind(this);
+    this._handleMouseMove = this._handleMouseMove.bind(this);
+    this._handleMouseUp = this._handleMouseUp.bind(this);
+    this._handleWindowResize = this._handleWindowResize.bind(this);
+    this._handleMouseWheel = this._handleMouseWheel.bind(this);
 
-    Util.addListener(window, "resize", this.handleWindowResize);
-    Util.addListener(this.topCanvas, "mousedown", this.handleMouseDown);
-    Util.addListener(this.topCanvas, "mousemove", this.handleMouseMove);
+    Util.addListener(window, "resize", this._handleWindowResize);
+    Util.addListener(this.topCanvas, "mousedown", this._handleMouseDown);
+    Util.addListener(this.topCanvas, "mousemove", this._handleMouseMove);
     Util.addListener(
       this.topCanvas,
       document.mozFullScreen ? "DOMMouseScroll" : "mousewheel",
-      this.handleMouseWheel
+      this._handleMouseWheel
     );
   }
 
@@ -233,79 +241,38 @@ export class Canvas extends EventCenter {
   }
 
   // 鼠标下压事件
-  private handleMouseDown(e: MouseEvent) {
+  private _handleMouseDown(e: MouseEvent) {
     let pointer = Util.getPointer(e, this.topCanvas, this.scale);
     this._executeCompose("mouseDown", { e, pointer, rococoCanvas: this });
-    Util.addListener(document, "mouseup", this.handleMouseUp);
+    Util.addListener(document, "mouseup", this._handleMouseUp);
     // 注销交互层 canvas 的监听事件，注册整个页面的事件，保证鼠标移动到屏幕外时 move 事件依旧执行
-    Util.addListener(document, "mousemove", this.handleMouseMove);
-    Util.removeListener(this.topCanvas, "mousemove", this.handleMouseMove);
+    Util.addListener(document, "mousemove", this._handleMouseMove);
+    Util.removeListener(this.topCanvas, "mousemove", this._handleMouseMove);
   }
   // 鼠标移动事件
-  private handleMouseMove(e: MouseEvent) {
+  private _handleMouseMove(e: MouseEvent) {
     let pointer = Util.getPointer(e, this.topCanvas, this.scale);
     this._executeCompose("mouseMove", { e, pointer, rococoCanvas: this });
     e.preventDefault();
   }
   // 鼠标放开事件
-  private handleMouseUp(e: MouseEvent) {
+  private _handleMouseUp(e: MouseEvent) {
     this._executeCompose("mouseUp", { e, rococoCanvas: this });
-    Util.removeListener(document, "mouseup", this.handleMouseUp);
+    Util.removeListener(document, "mouseup", this._handleMouseUp);
     // 注销整个页面的事件，退回到只有交互层 canvas 事件舰艇，只在 canvas 内执行 move 事件
-    Util.removeListener(document, "mousemove", this.handleMouseMove);
-    Util.addListener(this.topCanvas, "mousemove", this.handleMouseMove);
+    Util.removeListener(document, "mousemove", this._handleMouseMove);
+    Util.addListener(this.topCanvas, "mousemove", this._handleMouseMove);
   }
   // 鼠标滚轮事件
-  private handleMouseWheel(e: MouseEvent) {
+  private _handleMouseWheel(e: MouseEvent) {
     let pointer = Util.getPointer(e, this.topCanvas, this.scale);
     this._executeCompose("mouseWheel", { e, pointer, rococoCanvas: this });
   }
   // 窗口缩放事件
-  private handleWindowResize() {
+  private _handleWindowResize() {
     // TODO: 执行洋葱任务模型
     // this._executeCompose("", {canvas: this})
     this.calcOffset();
-  }
-  // #endregion
-
-  // #region 缩放操作
-  private zoom(is_mouse) {
-    // 是否居中放大
-    if (!is_mouse) {
-      // this._offset.left = this.width / 2;
-      // this._offset.top = this.height / 2;
-    }
-
-    // this.offset.x =
-    //   this.mousePosition.x -
-    //   ((this.mousePosition.x - this.offset.x) * this.scale) / this.preScale;
-    // this.offset.y =
-    //   this.mousePosition.y -
-    //   ((this.mousePosition.y - this.offset.y) * this.scale) / this.preScale;
-
-    this.renderAll();
-    // this.preScale = this.scale;
-    // this._currentOffset.x = this.offset.x;
-    // this.currentOffset.y = this.offset.y;
-  }
-  // 放大
-  zoomIn(is_mouse = false) {
-    if (this.scaleMax > this.scale) {
-      this.scale += this.scaleStep;
-      this.zoom(is_mouse);
-    } else {
-      return;
-    }
-  }
-
-  // 缩小
-  zoomOut(is_mouse = false) {
-    if (this.scaleMin < this.scale) {
-      this.scale -= this.scaleStep;
-      this.zoom(is_mouse);
-    } else {
-      return;
-    }
   }
   // #endregion
 
@@ -323,6 +290,10 @@ export class Canvas extends EventCenter {
     // this.emit('object:selected', { target: object, e });
     // object.emit('selected', { e });
     return this;
+  }
+  // 获取当前选中的元素
+  getActiveObject() {
+    return this._activeShape;
   }
   /** 使所有元素失活，并触发相应事件 */
   deactivateAllWithDispatch(): Canvas {
@@ -348,7 +319,7 @@ export class Canvas extends EventCenter {
     this.discardActiveObject();
     return this;
   }
-  private _resetObjectTransform(target) {
+  resetObjectTransform(target) {
     target.scaleX = 1;
     target.scaleY = 1;
     target.setAngle(0);
@@ -362,8 +333,7 @@ export class Canvas extends EventCenter {
     return this;
   }
   /** 平移当前选中物体，注意这里我们没有用 += */
-  private _translateObject(x: number, y: number) {
-    // console.log(this._currentTransform.offsetX, this._currentTransform.offsetY, this._offset.top, this._offset.left);
+  translateObject(x: number, y: number) {
     let target = this._currentTransform.target;
     target.set("left", x - this._currentTransform.offsetX);
     target.set("top", y - this._currentTransform.offsetY);
@@ -374,7 +344,7 @@ export class Canvas extends EventCenter {
    * @param y 鼠标点 y
    * @param by 是否等比缩放，x | y | equally
    */
-  private _scaleObject(x: number, y: number, by = "equally") {
+  scaleObject(x: number, y: number, by = "equally") {
     let t = this._currentTransform,
       offset = this._offset,
       target: Shape = t.target;
@@ -454,13 +424,11 @@ export class Canvas extends EventCenter {
       else if (t.originY === "bottom") t.originY = "top";
     }
 
-    // console.log(constraintPosition, localMouse, t.originX, t.originY);
-
     // 缩放会改变物体位置，所以要重新设置
     target.setPositionByOrigin(constraintPosition, t.originX, t.originY);
   }
   /** 旋转当前选中物体，这里用的是 += */
-  private _rotateObject(x: number, y: number) {
+  rotateObject(x: number, y: number) {
     const t = this._currentTransform;
     const o = this._offset;
     // 鼠标按下的点与物体中心点连线和 x 轴正方向形成的弧度
@@ -479,7 +447,7 @@ export class Canvas extends EventCenter {
    * 可能只有一个物体，那就是普通的点选
    * 如果有多个物体，那就生成一个组
    */
-  private _findSelectedObjects(e: MouseEvent) {
+  findSelectedObjects(e: MouseEvent) {
     let objects: Shape[] = [], // 存储最终框选的元素
       x1 = this._groupSelector.ex,
       y1 = this._groupSelector.ey,
@@ -514,7 +482,7 @@ export class Canvas extends EventCenter {
 
     this.renderAll();
   } /** 记录当前物体的变换状态 */
-  private _setupCurrentTransform(e: MouseEvent, target: Shape) {
+  setupCurrentTransform(e: MouseEvent, target: Shape) {
     let action = "drag",
       corner,
       pointer = Util.getPointer(e, target.canvas.topCanvas, this.scale);
@@ -584,12 +552,11 @@ export class Canvas extends EventCenter {
       originY,
     };
     let { target: target2, ...other } = this._currentTransform;
-    console.log(JSON.stringify(other, null, 4));
 
-    // this._resetCurrentTransform(e); // 好像没必要重新赋值？除非按下了 altKey 键
+    // this.resetCurrentTransform(e); // 好像没必要重新赋值？除非按下了 altKey 键
   }
   /** 重置当前 transform 状态为 original，并设置 resizing 的基点 */
-  private _resetCurrentTransform(e: MouseEvent) {
+  resetCurrentTransform(e: MouseEvent) {
     let t = this._currentTransform;
 
     t.target.set("scaleX", t.original.scaleX);
@@ -642,14 +609,14 @@ export class Canvas extends EventCenter {
     return this.setActiveGroup(null);
   }
   /** 是否要处理组的逻辑 */
-  private _shouldHandleGroupLogic(e: MouseEvent, target: Shape) {
+  shouldHandleGroupLogic(e: MouseEvent, target: Shape) {
     let activeObject = this._activeShape;
     return (
       e.shiftKey &&
       (this.getActiveGroup() || (activeObject && activeObject !== target))
     );
   }
-  private _handleGroupLogic(e, target) {
+  handleGroupLogic(e, target) {
     if (target === this.getActiveGroup()) {
       // if it's a group, find target again, this time skipping group
       target = this.findTarget(e, true);
@@ -662,14 +629,14 @@ export class Canvas extends EventCenter {
     if (activeGroup) {
       if (activeGroup.contains(target)) {
         activeGroup.removeWithUpdate(target);
-        this._resetObjectTransform(activeGroup);
+        this.resetObjectTransform(activeGroup);
         target.setActive(false);
         if (activeGroup.size() === 1) {
           this.discardActiveGroup();
         }
       } else {
         activeGroup.addWithUpdate(target);
-        this._resetObjectTransform(activeGroup);
+        this.resetObjectTransform(activeGroup);
       }
       activeGroup.setActive(true);
     } else {
@@ -698,9 +665,6 @@ export class Canvas extends EventCenter {
     }
     this.renderAll();
     return this;
-  }
-  getActiveObject() {
-    return this._activeShape;
   }
   // 设置 canvas 的宽高以及起始点
   private _applyCanvasStyle(el: HTMLCanvasElement) {
@@ -771,15 +735,48 @@ export class Canvas extends EventCenter {
     return objsToRender;
   }
 
-  private _initObject(obj: Shape) {
-    obj.setupState();
-    obj.setCoords();
-    obj.canvas = this;
-  }
-
   private _draw(ctx: CanvasRenderingContext2D, object: Shape) {
     if (!object) return;
     object.render(ctx);
+  }
+
+  private zoom(is_mouse) {
+    // 是否居中放大
+    if (!is_mouse) {
+      // this._offset.left = this.width / 2;
+      // this._offset.top = this.height / 2;
+    }
+
+    // this.offset.x =
+    //   this.mousePosition.x -
+    //   ((this.mousePosition.x - this.offset.x) * this.scale) / this.preScale;
+    // this.offset.y =
+    //   this.mousePosition.y -
+    //   ((this.mousePosition.y - this.offset.y) * this.scale) / this.preScale;
+
+    this.renderAll();
+    // this.preScale = this.scale;
+    // this._currentOffset.x = this.offset.x;
+    // this.currentOffset.y = this.offset.y;
+  }
+  // 放大
+  zoomIn(is_mouse = false) {
+    if (this.scaleMax > this.scale) {
+      this.scale += this.scaleStep;
+      this.zoom(is_mouse);
+    } else {
+      return;
+    }
+  }
+
+  // 缩小
+  zoomOut(is_mouse = false) {
+    if (this.scaleMin < this.scale) {
+      this.scale -= this.scaleStep;
+      this.zoom(is_mouse);
+    } else {
+      return;
+    }
   }
 
   /** 删除所有物体和清空画布 */
@@ -896,7 +893,10 @@ export class Canvas extends EventCenter {
     this.clearContext(ctx);
 
     // 绘制拖蓝选区
-    if (this._groupSelector) this._drawSelection();
+    if (this._groupSelector) this.drawSelection();
+
+    // 绘制正在绘制的图形
+    if (this._drawingShape) this._draw(this.tCtx, this._drawingShape);
 
     // 如果有选中物体
     // let activeGroup = this.getActiveGroup();
@@ -906,7 +906,7 @@ export class Canvas extends EventCenter {
     return this;
   }
   /** 绘制框选区域 */
-  private _drawSelection() {
+  drawSelection() {
     let ctx = this.tCtx,
       groupSelector = this._groupSelector,
       left = groupSelector.left,
@@ -934,7 +934,7 @@ export class Canvas extends EventCenter {
     );
   }
   /** 是否是拖蓝事件，也就是没有点选到物体 */
-  private _shouldClearSelection(e: MouseEvent) {
+  shouldClearSelection(e: MouseEvent) {
     let target = this.findTarget(e),
       activeGroup = this.getActiveGroup();
     return (
@@ -951,11 +951,11 @@ export class Canvas extends EventCenter {
 
   // #region 鼠标样式相关
   /** 设置鼠标样式 */
-  private _setCursor(value: string) {
+  setCursor(value: string) {
     this.topCanvas.style.cursor = value;
   }
   /** 根据鼠标位置来设置相应的鼠标样式 */
-  private _setCursorFromEvent(e: MouseEvent, target: Shape): boolean {
+  setCursorFromEvent(e: MouseEvent, target: Shape): boolean {
     let s = this.topCanvas.style;
     if (target) {
       let activeGroup = this.getActiveGroup();
