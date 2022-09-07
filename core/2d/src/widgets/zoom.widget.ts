@@ -55,8 +55,6 @@ export class ZoomWidget extends Widget {
 
   // 挂件成功挂载，为挂件 dom 元素绑定事件
   onMounted() {
-    Util.setStyle(this.dom, this.style);
-
     (this.dom.querySelector("#zoom-in-widget") as HTMLElement).onclick =
       this.zoomIn.bind(this);
 
@@ -65,9 +63,9 @@ export class ZoomWidget extends Widget {
   }
 
   zoomIn() {
-    this.rococoCanvas.zoomIn();
+    this.rococo2d.zoomIn();
   }
   zoomOut() {
-    this.rococoCanvas.zoomOut();
+    this.rococo2d.zoomOut();
   }
 }

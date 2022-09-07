@@ -155,8 +155,8 @@ export class Canvas extends EventCenter {
       widget.dom.style.position = "absolute";
       widget.dom.style["zIndex"] = "10";
       this.wrapperElement.appendChild(widget.dom);
-      widget.rococoCanvas = this;
-      widget?.onMounted();
+      widget.rococo2d = this;
+      widget.mount();
     });
   }
 
@@ -243,7 +243,7 @@ export class Canvas extends EventCenter {
   // 鼠标下压事件
   private _handleMouseDown(e: MouseEvent) {
     let pointer = Util.getPointer(e, this.topCanvas, this.scale);
-    this._executeCompose("mouseDown", { e, pointer, rococoCanvas: this });
+    this._executeCompose("mouseDown", { e, pointer, rococo2d: this });
     Util.addListener(document, "mouseup", this._handleMouseUp);
     // 注销交互层 canvas 的监听事件，注册整个页面的事件，保证鼠标移动到屏幕外时 move 事件依旧执行
     Util.addListener(document, "mousemove", this._handleMouseMove);
@@ -252,12 +252,12 @@ export class Canvas extends EventCenter {
   // 鼠标移动事件
   private _handleMouseMove(e: MouseEvent) {
     let pointer = Util.getPointer(e, this.topCanvas, this.scale);
-    this._executeCompose("mouseMove", { e, pointer, rococoCanvas: this });
+    this._executeCompose("mouseMove", { e, pointer, rococo2d: this });
     e.preventDefault();
   }
   // 鼠标放开事件
   private _handleMouseUp(e: MouseEvent) {
-    this._executeCompose("mouseUp", { e, rococoCanvas: this });
+    this._executeCompose("mouseUp", { e, rococo2d: this });
     Util.removeListener(document, "mouseup", this._handleMouseUp);
     // 注销整个页面的事件，退回到只有交互层 canvas 事件舰艇，只在 canvas 内执行 move 事件
     Util.removeListener(document, "mousemove", this._handleMouseMove);
@@ -266,7 +266,7 @@ export class Canvas extends EventCenter {
   // 鼠标滚轮事件
   private _handleMouseWheel(e: MouseEvent) {
     let pointer = Util.getPointer(e, this.topCanvas, this.scale);
-    this._executeCompose("mouseWheel", { e, pointer, rococoCanvas: this });
+    this._executeCompose("mouseWheel", { e, pointer, rococo2d: this });
   }
   // 窗口缩放事件
   private _handleWindowResize() {

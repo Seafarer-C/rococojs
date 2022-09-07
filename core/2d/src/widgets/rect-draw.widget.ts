@@ -47,7 +47,7 @@ export class RectDrawWidget extends Widget {
   isDrawingRect = false;
 
   mouseDown({ e }, next) {
-    // this.rococoCanvas
+    // this.rococo2d
     next();
   }
   mouseMove({ e, pointer }, next) {
@@ -65,7 +65,7 @@ export class RectDrawWidget extends Widget {
 
   onClick() {
     console.log("开始绘制");
-    console.log(this.rococoCanvas);
-    this.rococoCanvas.setCursor("crosshair");
+    console.log(this.rococo2d);
+    this.rococo2d.setCursor("crosshair");
   }
 }

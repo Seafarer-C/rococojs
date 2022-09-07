@@ -7,22 +7,22 @@ enum CursorStyle {
 }
 
 export default {
-  mouseDown: ({ e, rococoCanvas }, next) => {
+  mouseDown: ({ e, rococo2d }, next) => {
     // 只处理左键点击，要么是拖蓝事件、要么是点选事件
     let isLeftClick = "which" in e ? e.which === 1 : e.button === 1;
     if (!isLeftClick) return;
 
-    // 这个我猜是为了保险起见，ignore if some object is being transformed at rococoCanvas moment
-    if (rococoCanvas._currentTransform) return;
+    // 这个我猜是为了保险起见，ignore if some object is being transformed at rococo2d moment
+    if (rococo2d._currentTransform) return;
 
-    let target = rococoCanvas.findTarget(e);
-    let pointer = rococoCanvas.getPointer(e);
+    let target = rococo2d.findTarget(e);
+    let pointer = rococo2d.getPointer(e);
     let corner;
-    rococoCanvas._previousPointer = pointer;
+    rococo2d._previousPointer = pointer;
 
-    if (rococoCanvas.shouldClearSelection(e)) {
+    if (rococo2d.shouldClearSelection(e)) {
       // 如果是拖蓝选区事件
-      rococoCanvas._groupSelector = {
+      rococo2d._groupSelector = {
         // 重置选区状态
         ex: pointer.x,
         ey: pointer.y,
@@ -30,52 +30,50 @@ export default {
         left: 0,
       };
       // 让所有元素失去激活状态
-      rococoCanvas.deactivateAllWithDispatch();
+      rococo2d.deactivateAllWithDispatch();
     } else {
       // 如果是点选操作，接下来就要为各种变换做准备
       target.saveState();
 
       // 判断点击的是不是控制点
-      corner = target._findTargetCorner(e, rococoCanvas._offset);
-      if (rococoCanvas.shouldHandleGroupLogic(e, target)) {
+      corner = target._findTargetCorner(e, rococo2d._offset);
+      if (rococo2d.shouldHandleGroupLogic(e, target)) {
         // 如果是选中组
-        rococoCanvas.handleGroupLogic(e, target);
-        target = rococoCanvas.getActiveGroup();
+        rococo2d.handleGroupLogic(e, target);
+        target = rococo2d.getActiveGroup();
       } else {
         // 如果是选中单个物体
-        if (target !== rococoCanvas.getActiveGroup()) {
-          rococoCanvas.deactivateAll();
+        if (target !== rococo2d.getActiveGroup()) {
+          rococo2d.deactivateAll();
         }
-        rococoCanvas.setActiveObject(target, e);
+        rococo2d.setActiveObject(target, e);
       }
-      rococoCanvas.setupCurrentTransform(e, target);
+      rococo2d.setupCurrentTransform(e, target);
     }
     // 不论是拖蓝选区事件还是点选事件，都需要重新绘制
     // 拖蓝选区：需要把之前激活的物体取消选中态
     // 点选事件：需要把当前激活的物体置顶
-    rococoCanvas.renderAll();
+    rococo2d.renderAll();
     next();
   },
-  mouseMove: ({ e, pointer, rococoCanvas }, next) => {
+  mouseMove: ({ e, pointer, rococo2d }, next) => {
     let target;
 
-    let groupSelector = rococoCanvas._groupSelector;
+    let groupSelector = rococo2d._groupSelector;
 
     if (groupSelector) {
       // 如果有拖蓝框选区域
 
-      groupSelector.left =
-        pointer.x - rococoCanvas._offset.left - groupSelector.ex;
-      groupSelector.top =
-        pointer.y - rococoCanvas._offset.top - groupSelector.ey;
-      rococoCanvas.renderTop();
-    } else if (!rococoCanvas._currentTransform) {
+      groupSelector.left = pointer.x - rococo2d._offset.left - groupSelector.ex;
+      groupSelector.top = pointer.y - rococo2d._offset.top - groupSelector.ey;
+      rococo2d.renderTop();
+    } else if (!rococo2d._currentTransform) {
       // 如果是 hover 事件，这里我们只需要改变鼠标样式，并不会重新渲染
-      let style = rococoCanvas.topCanvas.style;
-      target = rococoCanvas.findTarget(e);
+      let style = rococo2d.topCanvas.style;
+      target = rococo2d.findTarget(e);
 
       if (target) {
-        rococoCanvas.setCursorFromEvent(e, target);
+        rococo2d.setCursorFromEvent(e, target);
       } else {
         style.cursor = CursorStyle.default;
       }
@@ -85,48 +83,48 @@ export default {
       let x = pointer.x,
         y = pointer.y;
 
-      rococoCanvas._currentTransform.target.isMoving = true;
+      rococo2d._currentTransform.target.isMoving = true;
 
-      let t = rococoCanvas._currentTransform,
+      let t = rococo2d._currentTransform,
         reset = false;
 
-      if (rococoCanvas._currentTransform.action === "rotate") {
+      if (rococo2d._currentTransform.action === "rotate") {
         // 如果是旋转操作
-        rococoCanvas.rotateObject(x, y);
-      } else if (rococoCanvas._currentTransform.action === "scale") {
+        rococo2d.rotateObject(x, y);
+      } else if (rococo2d._currentTransform.action === "scale") {
         // 如果是整体缩放操作
         if (e.shiftKey) {
-          rococoCanvas._currentTransform.currentAction = "scale";
-          rococoCanvas.scaleObject(x, y);
+          rococo2d._currentTransform.currentAction = "scale";
+          rococo2d.scaleObject(x, y);
         } else {
           if (!reset && t.currentAction === "scale") {
-            rococoCanvas.resetCurrentTransform(e);
+            rococo2d.resetCurrentTransform(e);
           }
 
-          rococoCanvas._currentTransform.currentAction = "scaleEqually";
-          rococoCanvas.scaleObject(x, y, "equally");
+          rococo2d._currentTransform.currentAction = "scaleEqually";
+          rococo2d.scaleObject(x, y, "equally");
         }
-      } else if (rococoCanvas._currentTransform.action === "scaleX") {
+      } else if (rococo2d._currentTransform.action === "scaleX") {
         // 如果只是缩放 x
-        rococoCanvas.scaleObject(x, y, "x");
-      } else if (rococoCanvas._currentTransform.action === "scaleY") {
+        rococo2d.scaleObject(x, y, "x");
+      } else if (rococo2d._currentTransform.action === "scaleY") {
         // 如果只是缩放 y
-        rococoCanvas.scaleObject(x, y, "y");
+        rococo2d.scaleObject(x, y, "y");
       } else {
         // 如果是拖拽物体
-        rococoCanvas.translateObject(x, y);
-        rococoCanvas.setCursor(CursorStyle.move);
+        rococo2d.translateObject(x, y);
+        rococo2d.setCursor(CursorStyle.move);
       }
 
-      rococoCanvas.renderAll();
+      rococo2d.renderAll();
     }
 
     next();
   },
-  mouseUp: ({ e, rococoCanvas }, next) => {
+  mouseUp: ({ e, rococo2d }, next) => {
     let target;
-    if (rococoCanvas._currentTransform) {
-      let transform = rococoCanvas._currentTransform;
+    if (rococo2d._currentTransform) {
+      let transform = rococo2d._currentTransform;
 
       target = transform.target;
       if (target._scaling) {
@@ -134,41 +132,41 @@ export default {
       }
 
       // 每次物体更改都要重新计算新的控制点
-      let i = rococoCanvas._shapes.length;
+      let i = rococo2d._shapes.length;
       while (i--) {
-        rococoCanvas._shapes[i].setCoords();
+        rococo2d._shapes[i].setCoords();
       }
 
       target.isMoving = false;
 
       // 在点击之间如果物体状态改变了才派发事件
       if (target.hasStateChanged()) {
-        // rococoCanvas.emit("object:modified", { target });
+        // rococo2d.emit("object:modified", { target });
         // target.emit("modified");
       }
     }
 
-    rococoCanvas._currentTransform = null;
+    rococo2d._currentTransform = null;
 
-    if (rococoCanvas._groupSelector) {
+    if (rococo2d._groupSelector) {
       // 如果有拖蓝框选区域
-      rococoCanvas.findSelectedObjects(e);
+      rococo2d.findSelectedObjects(e);
     }
-    let activeGroup = rococoCanvas.getActiveGroup();
+    let activeGroup = rococo2d.getActiveGroup();
     if (activeGroup) {
       //重新设置 激活组 中的物体
       activeGroup.setObjectsCoords();
       activeGroup.set("isMoving", false);
-      rococoCanvas.setCursor(CursorStyle.default);
+      rococo2d.setCursor(CursorStyle.default);
     }
-    rococoCanvas._groupSelector = null;
-    rococoCanvas.renderAll();
+    rococo2d._groupSelector = null;
+    rococo2d.renderAll();
 
-    rococoCanvas.setCursorFromEvent(e, target);
+    rococo2d.setCursorFromEvent(e, target);
 
     next();
   },
-  mouseWheel: ({ e, rococoCanvas }, next) => {
+  mouseWheel: ({ e, rococo2d }, next) => {
     let b = true;
     if (e.wheelDelta) {
       b = e.wheelDelta > 0;
@@ -178,9 +176,9 @@ export default {
     console.log(e.wheelDelta, b);
 
     if (b) {
-      rococoCanvas.zoomIn(true);
+      rococo2d.zoomIn(true);
     } else {
-      rococoCanvas.zoomOut(true);
+      rococo2d.zoomOut(true);
     }
     next();
   },
