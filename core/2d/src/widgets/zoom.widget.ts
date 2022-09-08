@@ -61,6 +61,11 @@ export class ZoomWidget extends Widget {
     (this.dom.querySelector("#zoom-out-widget") as HTMLElement).onclick =
       this.zoomOut.bind(this);
   }
+  mouseDown({ e }, next) {
+    // this.rococo2d
+    // console.log("????", e, this.rococo2d);
+    next();
+  }
 
   zoomIn() {
     this.rococo2d.zoomIn();

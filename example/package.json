@@ -2,9 +2,9 @@
   "name": "@rococojs/example",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "dev": "webpack serve"
+    "dev": "webpack server",
+    "build": "webpack build"
   },
   "author": "Seafarer-C",
   "license": "ISC",
@@ -33,7 +33,6 @@
     "webpack-dev-server": "^4.8.1"
   },
   "dependencies": {
-    "@rococojs/image": "workspace:*",
     "@rococojs/2d": "workspace:*"
   }
 }

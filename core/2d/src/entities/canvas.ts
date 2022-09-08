@@ -49,6 +49,8 @@ export class Canvas extends EventCenter {
   }
 
   //#region 属性字段
+  /** 当前操作类型 */
+  action = "default";
   /** 画布宽度 */
   public width: number;
   /** 画布高度 */
@@ -236,8 +238,17 @@ export class Canvas extends EventCenter {
 
   // 执行洋葱任务模型
   private _executeCompose(key: string, ctx: any) {
+    const widgetMiddles = [];
+    this.widgets.forEach((widget) => {
+      if (widget[key]) {
+        widgetMiddles.push(widget[key].bind(widget));
+      }
+    });
     // 虽然设计有返回值，但是并不关心因此不处理
-    Util.compose(this.plugins.filter((p) => p[key]).map((p) => p[key]))(ctx);
+    Util.compose([
+      ...this.plugins.filter((p) => p[key]).map((p) => p[key]),
+      ...widgetMiddles,
+    ])(ctx);
   }
 
   // 鼠标下压事件
@@ -891,6 +902,9 @@ export class Canvas extends EventCenter {
   renderTop(): Canvas {
     let ctx = this.tCtx;
     this.clearContext(ctx);
+    ctx.save();
+    ctx.scale(this.scale, this.scale);
+    ctx.translate(this._canvasOffset.left, this._canvasOffset.top);
 
     // 绘制拖蓝选区
     if (this._groupSelector) this.drawSelection();
@@ -901,7 +915,7 @@ export class Canvas extends EventCenter {
     // 如果有选中物体
     // let activeGroup = this.getActiveGroup();
     // if (activeGroup) activeGroup.render(ctx);
-
+    ctx.restore();
     this.emit("after:render");
     return this;
   }

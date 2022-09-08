@@ -1,3 +1,4 @@
+import { Rect } from "../entities/elements/rect.entity";
 import { Widget } from "./widget";
 
 const rectDrawSvg =
@@ -43,18 +44,63 @@ export class RectDrawWidget extends Widget {
     <button id="rect-draw-widget">矩形</button>
   `;
 
-  // 是否正在绘制矩形
-  isDrawingRect = false;
-
-  mouseDown({ e }, next) {
-    // this.rococo2d
-    next();
+  async mouseDown({ rococo2d, pointer }, next) {
+    if (rococo2d.action === "draw") {
+      rococo2d._groupSelector = {
+        // 重置选区状态
+        ex: pointer.x,
+        ey: pointer.y,
+        top: 0,
+        left: 0,
+      };
+      // 让所有元素失去激活状态
+      rococo2d.deactivateAllWithDispatch();
+      rococo2d.renderAll();
+      return;
+    } else {
+      await next();
+    }
   }
-  mouseMove({ e, pointer }, next) {
-    next();
+  mouseMove({ pointer, rococo2d }, next) {
+    let groupSelector = rococo2d._groupSelector;
+    if (rococo2d.action === "draw") {
+      if (groupSelector) {
+        // 如果有拖蓝框选区域
+        groupSelector.left =
+          pointer.x - rococo2d._offset.left - groupSelector.ex;
+        groupSelector.top = pointer.y - rococo2d._offset.top - groupSelector.ey;
+        rococo2d.renderTop();
+      }
+      return;
+    } else {
+      next();
+    }
   }
-  mouseUp({ e }, next) {
-    next();
+  mouseUp({ rococo2d }, next) {
+    if (rococo2d.action === "draw") {
+      console.log(rococo2d._groupSelector);
+      const { ex, ey, left, top } = rococo2d._groupSelector;
+      // 绘制新增出来的矩形
+      const rect = new Rect({
+        top: ey + top / 2,
+        left: ex + left / 2,
+        width: left,
+        height: top,
+        fill: "#0c99ff50",
+      });
+      rococo2d._shapes.push(rect);
+      rect.setupState();
+      rect.setCoords();
+      rect.canvas = rococo2d;
+      rococo2d.renderAll();
+      // 取消高亮
+      rococo2d._groupSelector = null;
+      rococo2d.renderTop();
+      this.rococo2d._activeGroup = null;
+      return;
+    } else {
+      next();
+    }
   }
 
   // 挂件成功挂载，为挂件 dom 元素绑定事件
@@ -64,8 +110,14 @@ export class RectDrawWidget extends Widget {
   }
 
   onClick() {
-    console.log("开始绘制");
-    console.log(this.rococo2d);
-    this.rococo2d.setCursor("crosshair");
+    if (this.rococo2d.action === "default") {
+      console.log("开始绘制");
+      this.rococo2d.setCursor("crosshair");
+      this.rococo2d.action = "draw";
+    } else {
+      console.log("结束绘制");
+      this.rococo2d.setCursor("default");
+      this.rococo2d.action = "default";
+    }
   }
 }

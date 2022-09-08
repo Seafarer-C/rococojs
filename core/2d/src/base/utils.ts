@@ -469,6 +469,7 @@ export class Util {
           return Promise.reject(new Error("next() called multiple times"));
         index = i;
         let fn = middleware[i];
+
         if (i === middleware.length) fn = next;
         if (!fn) return Promise.resolve();
         try {

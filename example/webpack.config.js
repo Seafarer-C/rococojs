@@ -24,7 +24,7 @@ module.exports = {
   entry: path.resolve("./src/index.ts"),
   output: {
     path: __dirname,
-    filename: "build.js",
+    filename: "../docs/build.js",
   },
   module: {
     rules: [
@@ -84,17 +84,6 @@ module.exports = {
             options: {},
           },
           "css-loader",
-        ],
-      },
-      {
-        test: /\.yun$/,
-        use: [
-          {
-            loader: path.resolve("path/to/loader.js"),
-            options: {
-              /* ... */
-            },
-          },
         ],
       },
     ],

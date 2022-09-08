@@ -8,6 +8,8 @@ enum CursorStyle {
 
 export default {
   mouseDown: ({ e, rococo2d }, next) => {
+    next();
+    if (rococo2d.action !== "default") return;
     // 只处理左键点击，要么是拖蓝事件、要么是点选事件
     let isLeftClick = "which" in e ? e.which === 1 : e.button === 1;
     if (!isLeftClick) return;
@@ -54,9 +56,10 @@ export default {
     // 拖蓝选区：需要把之前激活的物体取消选中态
     // 点选事件：需要把当前激活的物体置顶
     rococo2d.renderAll();
-    next();
   },
   mouseMove: ({ e, pointer, rococo2d }, next) => {
+    next();
+    if (rococo2d.action !== "default") return;
     let target;
 
     let groupSelector = rococo2d._groupSelector;
@@ -118,10 +121,10 @@ export default {
 
       rococo2d.renderAll();
     }
-
-    next();
   },
   mouseUp: ({ e, rococo2d }, next) => {
+    next();
+    if (rococo2d.action !== "default") return;
     let target;
     if (rococo2d._currentTransform) {
       let transform = rococo2d._currentTransform;
@@ -163,8 +166,6 @@ export default {
     rococo2d.renderAll();
 
     rococo2d.setCursorFromEvent(e, target);
-
-    next();
   },
   mouseWheel: ({ e, rococo2d }, next) => {
     let b = true;
