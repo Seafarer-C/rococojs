@@ -899,7 +899,7 @@ export class Canvas extends EventCenter {
 
   // #region 顶层交互层操作
   /** 渲染 top-canvas，一般用于渲染拖蓝多选区域和涂鸦 */
-  renderTop(): Canvas {
+  renderTop(shapes?: Array<Shape>): Canvas {
     let ctx = this.tCtx;
     this.clearContext(ctx);
     ctx.save();
@@ -911,6 +911,8 @@ export class Canvas extends EventCenter {
 
     // 绘制正在绘制的图形
     if (this._drawingShape) this._draw(this.tCtx, this._drawingShape);
+
+    if (shapes) shapes.forEach((shp) => this._draw(this.tCtx, shp));
 
     // 如果有选中物体
     // let activeGroup = this.getActiveGroup();

@@ -47,8 +47,10 @@ export class RectDrawWidget extends Widget {
     </button>
   `;
 
+  isDrawingRect = false;
+
   async mouseDown({ rococo2d, pointer }, next) {
-    if (rococo2d.action === "draw") {
+    if (this.isDrawingRect) {
       rococo2d._groupSelector = {
         // 重置选区状态
         ex: pointer.x,
@@ -66,7 +68,7 @@ export class RectDrawWidget extends Widget {
   }
   mouseMove({ pointer, rococo2d }, next) {
     let groupSelector = rococo2d._groupSelector;
-    if (rococo2d.action === "draw") {
+    if (this.isDrawingRect) {
       if (groupSelector) {
         // 如果有拖蓝框选区域
         groupSelector.left =
@@ -80,7 +82,7 @@ export class RectDrawWidget extends Widget {
     }
   }
   mouseUp({ rococo2d }, next) {
-    if (rococo2d.action === "draw") {
+    if (this.isDrawingRect) {
       console.log(rococo2d._groupSelector);
       const { ex, ey, left, top } = rococo2d._groupSelector;
       // 绘制新增出来的矩形
@@ -115,14 +117,16 @@ export class RectDrawWidget extends Widget {
   }
 
   onClick() {
-    if (this.rococo2d.action === "default") {
+    if (!this.isDrawingRect) {
       console.log("开始绘制");
       this.rococo2d.setCursor("crosshair");
       this.rococo2d.action = "draw";
+      this.isDrawingRect = true;
     } else {
       console.log("结束绘制");
       this.rococo2d.setCursor("default");
       this.rococo2d.action = "default";
+      this.isDrawingRect = false;
     }
   }
 }

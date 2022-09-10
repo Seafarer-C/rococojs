@@ -49,6 +49,13 @@ export class Line extends Shape {
     this._setWidthHeight(options);
   }
 
+  setEnd(x2, y2) {
+    this.x2 = x2;
+    this.y2 = y2;
+    this.width = Math.abs(this.x2 - this.x1);
+    this.height = Math.abs(this.y2 - this.y1);
+  }
+
   /**
    * @private
    * @param {Object} [options] Options

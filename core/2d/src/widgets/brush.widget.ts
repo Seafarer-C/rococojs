@@ -1,3 +1,4 @@
+import { Line } from "../entities/elements/line.entity";
 import { Widget } from "./widget";
 
 const brushSvg =
@@ -45,10 +46,74 @@ export class BrushWidget extends Widget {
   `;
   onMounted() {
     (this.dom.querySelector("#brush-widget") as HTMLElement).onclick =
-      this.onClick;
+      this.onClick.bind(this);
+  }
+
+  isDrawingLine = false;
+
+  line: Line;
+
+  mouseDown({ rococo2d, pointer }, next) {
+    if (this.isDrawingLine) {
+      // 让所有元素失去激活状态
+      rococo2d.deactivateAllWithDispatch();
+      rococo2d.renderAll();
+      const { x, y } = pointer;
+      this.line = new Line([0, 0, 0, 0], {
+        top: y,
+        left: x,
+        strokeWidth: 2,
+        originX: "left",
+        originY: "top",
+      });
+      this.line.setupState();
+      this.line.setCoords();
+      this.line.canvas = rococo2d;
+      rococo2d.renderTop([this.line]);
+      return;
+    } else {
+      next();
+    }
+  }
+
+  mouseMove({ pointer, rococo2d }, next) {
+    if (this.isDrawingLine && this.line) {
+      const { x, y } = pointer;
+      this.line.setEnd(x - this.line.left, y - this.line.top);
+      rococo2d.renderTop([this.line]);
+      return;
+    } else {
+      next();
+    }
+  }
+
+  mouseUp({ rococo2d }, next) {
+    if (this.isDrawingLine) {
+      rococo2d._shapes.push(this.line);
+
+      rococo2d.renderAll();
+      this.line = null;
+      // 取消高亮
+      rococo2d.renderTop();
+      this.rococo2d._activeGroup = null;
+      this.onClick();
+      return;
+    } else {
+      next();
+    }
   }
 
   onClick() {
-    console.log("brush");
+    if (!this.isDrawingLine) {
+      console.log("开始绘制");
+      this.rococo2d.setCursor("crosshair");
+      this.rococo2d.action = "draw";
+      this.isDrawingLine = true;
+    } else {
+      console.log("结束绘制");
+      this.rococo2d.setCursor("default");
+      this.rococo2d.action = "default";
+      this.isDrawingLine = false;
+    }
   }
 }
