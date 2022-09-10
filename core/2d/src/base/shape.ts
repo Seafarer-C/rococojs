@@ -111,7 +111,6 @@ export class Shape extends EventCenter {
   /** 渲染物体，默认用 fill 填充 */
   render(ctx: CanvasRenderingContext2D, noTransform: boolean = false) {
     if (this.width === 0 || this.height === 0 || !this.visible) return;
-
     ctx.save();
 
     // let m = this.transformMatrix;

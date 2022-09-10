@@ -62,8 +62,6 @@ export class ZoomWidget extends Widget {
       this.zoomOut.bind(this);
   }
   mouseDown({ e }, next) {
-    // this.rococo2d
-    // console.log("????", e, this.rococo2d);
     next();
   }
 

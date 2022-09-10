@@ -9,39 +9,42 @@ const rectDrawSvg =
 export class RectDrawWidget extends Widget {
   innerHTML = `
     <style>
-        #rect-draw-widget {
-            height: 36px;
-            color: #fff;
-            background-color: #2254f4;
-            border-color: #2254f4;    
-            font-weight: 400;
-            line-height: 30px;
-            padding: 0 16px;
-            font-size: 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            line-height: 1.499;
-            position: relative;
-            display: inline-block;
-            font-weight: 500;
-            white-space: nowrap;
-            text-align: center;
-            background-image: none;
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: all .3s cubic-bezier(.645,.045,.355,1);
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
-            touch-action: manipulation;
-        }
-        #rect-draw-widget:hover{
-            color: #fff;
-            background-color: #4972f6;
-            border-color: #4972f6;
-        }
+      .widget-btn {
+          height: 36px;
+          width: 36px;
+          color: #8638e5;
+          background-color: #ffffff;
+          font-weight: 400;
+          font-size: 16px;
+          border-radius: 50%;
+          cursor: pointer;
+          line-height: 1.499;
+          position: relative;
+          display: inline-block;
+          font-weight: 500;
+          white-space: nowrap;
+          text-align: center;
+          background-image: none;
+          border: 1px solid transparent;
+          cursor: pointer;
+          transition: all .3s cubic-bezier(.645,.045,.355,1);
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          user-select: none;
+          touch-action: manipulation;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 10px;
+          box-shadow: 0 0 2px #000000;
+      }
+      .widget-btn:hover{
+          background-color: #f0f0f0;
+      }
     </style>
-    <button id="rect-draw-widget">矩形</button>
+    <button id="rect-draw-widget" class="widget-btn">
+      ${rectDrawSvg}
+    </button>
   `;
 
   async mouseDown({ rococo2d, pointer }, next) {
@@ -87,6 +90,7 @@ export class RectDrawWidget extends Widget {
         width: left,
         height: top,
         fill: "#0c99ff50",
+        stroke: "#0c99ff",
       });
       rococo2d._shapes.push(rect);
       rect.setupState();
@@ -97,6 +101,7 @@ export class RectDrawWidget extends Widget {
       rococo2d._groupSelector = null;
       rococo2d.renderTop();
       this.rococo2d._activeGroup = null;
+      this.onClick();
       return;
     } else {
       next();
