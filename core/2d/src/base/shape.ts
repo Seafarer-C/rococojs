@@ -161,11 +161,14 @@ export class Shape extends EventCenter {
     let center = this.getCenterPoint();
     ctx.translate(center.x, center.y);
     ctx.rotate(Util.degreesToRadians(this.angle));
-    // ctx.scale(this.scaleX, this.scaleY);
-    ctx.scale(
-      this.scaleX * (this.flipX ? -1 : 1),
-      this.scaleY * (this.flipY ? -1 : 1)
-    );
+    ctx.scale(this.flipX ? -1 : 1, this.flipY ? -1 : 1);
+    // 设置新数据
+    this.width *= this.scaleX;
+    this.height *= this.scaleY;
+    this.scaleX = 1;
+    this.scaleY = 1;
+    this.left = center.x;
+    this.top = center.y;
     // const m = Util.composeMatrix({
     //     angle: this.angle,
     //     translateX: center.x,
@@ -194,7 +197,7 @@ export class Shape extends EventCenter {
     ctx.lineWidth = strokeWidth;
 
     /** 画边框的时候需要把 transform 变换中的 scale 效果抵消，这样才能画出原始大小的线条 */
-    ctx.scale(1 / this.scaleX, 1 / this.scaleY);
+    // ctx.scale(1 / this.scaleX, 1 / this.scaleY);
 
     let w = this.getWidth(),
       h = this.getHeight();
@@ -455,19 +458,6 @@ export class Shape extends EventCenter {
       }
 
       lines = this._getImageLines(this.oCoords[i].corner);
-
-      // debugger 绘制物体控制点的四个顶点
-      // this.canvas.contextTop.fillRect(lines.bottomline.d.x, lines.bottomline.d.y, 2, 2);
-      // this.canvas.contextTop.fillRect(lines.bottomline.o.x, lines.bottomline.o.y, 2, 2);
-
-      // this.canvas.contextTop.fillRect(lines.leftline.d.x, lines.leftline.d.y, 2, 2);
-      // this.canvas.contextTop.fillRect(lines.leftline.o.x, lines.leftline.o.y, 2, 2);
-
-      // this.canvas.contextTop.fillRect(lines.topline.d.x, lines.topline.d.y, 2, 2);
-      // this.canvas.contextTop.fillRect(lines.topline.o.x, lines.topline.o.y, 2, 2);
-
-      // this.canvas.contextTop.fillRect(lines.rightline.d.x, lines.rightline.d.y, 2, 2);
-      // this.canvas.contextTop.fillRect(lines.rightline.o.x, lines.rightline.o.y, 2, 2);
 
       xpoints = this._findCrossPoints(ex, ey, lines);
       if (xpoints % 2 === 1 && xpoints !== 0) {

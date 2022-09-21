@@ -41,14 +41,39 @@ export class RococoImage extends Shape {
   }
   /** 直接调用 drawImage 绘制图像 */
   _render(ctx: CanvasRenderingContext2D, noTransform: boolean = false) {
-    let x, y, elementToDraw;
+    let x, y;
 
     x = noTransform ? this.left : -this.width / 2;
     y = noTransform ? this.top : -this.height / 2;
 
-    elementToDraw = this._element;
-    elementToDraw &&
-      ctx.drawImage(elementToDraw, x, y, this.width, this.height);
+    if (this._element?.complete) {
+      ctx.drawImage(this._element, x, y, this.width, this.height);
+    } else {
+      // 当图片素材未加载完毕，先绘制骨架
+      const rx = 2,
+        ry = 2,
+        w = this.width,
+        h = this.height;
+      ctx.beginPath();
+      ctx.moveTo(x + rx, y);
+      ctx.lineTo(x + w - rx, y);
+      ctx.bezierCurveTo(x + w, y, x + w, y + ry, x + w, y + ry);
+      ctx.lineTo(x + w, y + h - ry);
+      ctx.bezierCurveTo(x + w, y + h, x + w - rx, y + h, x + w - rx, y + h);
+      ctx.lineTo(x + rx, y + h);
+      ctx.bezierCurveTo(x, y + h, x, y + h - ry, x, y + h - ry);
+      ctx.lineTo(x, y + ry);
+      ctx.bezierCurveTo(x, y, x + rx, y, x + rx, y);
+      ctx.closePath();
+      ctx.strokeStyle = "#e8e8e860";
+      ctx.fillStyle = "#90909060";
+      ctx.fill();
+      ctx.stroke();
+      ctx.drawImage(this._element, x, y, this.width, this.height);
+      this._element.onload = () => {
+        this.canvas.renderAll();
+      };
+    }
   }
   /** 如果是根据 url 或者本地路径加载图像，本质都是取加载图片完成之后在转成 img 标签 */
   static fromURL(url, callback, imgOptions) {

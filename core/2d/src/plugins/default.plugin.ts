@@ -25,7 +25,7 @@ export default {
     if (rococo2d.shouldClearSelection(e)) {
       // 如果是拖蓝选区事件
       rococo2d._groupSelector = {
-        // 重置选区状态
+        // 重置选区状态`
         ex: pointer.x,
         ey: pointer.y,
         top: 0,
@@ -167,19 +167,18 @@ export default {
 
     rococo2d.setCursorFromEvent(e, target);
   },
-  mouseWheel: ({ e, rococo2d }, next) => {
+  mouseWheel: ({ e, pointer, rococo2d }, next) => {
     let b = true;
     if (e.wheelDelta) {
       b = e.wheelDelta > 0;
     } else {
       b = e.detail < 0;
     }
-    console.log(e.wheelDelta, b);
 
     if (b) {
-      rococo2d.zoomIn(true);
+      rococo2d.zoomIn(true, pointer);
     } else {
-      rococo2d.zoomOut(true);
+      rococo2d.zoomOut(true, pointer);
     }
     next();
   },

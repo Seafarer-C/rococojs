@@ -1,10 +1,10 @@
-import { Path } from "../entities/elements/path.entity";
+import { Line } from "../entities/elements/line.entity";
 import { Widget } from "./widget";
 
 const brushSvg =
   '<svg focusable="false" class="" data-icon="highlight" width="1em" height="1em" fill="currentColor" aria-hidden="true" viewBox="64 64 896 896"><path d="M957.6 507.4L603.2 158.2a7.9 7.9 0 00-11.2 0L353.3 393.4a8.03 8.03 0 00-.1 11.3l.1.1 40 39.4-117.2 115.3a8.03 8.03 0 00-.1 11.3l.1.1 39.5 38.9-189.1 187H72.1c-4.4 0-8.1 3.6-8.1 8V860c0 4.4 3.6 8 8 8h344.9c2.1 0 4.1-.8 5.6-2.3l76.1-75.6 40.4 39.8a7.9 7.9 0 0011.2 0l117.1-115.6 40.1 39.5a7.9 7.9 0 0011.2 0l238.7-235.2c3.4-3 3.4-8 .3-11.2zM389.8 796.2H229.6l134.4-133 80.1 78.9-54.3 54.1zm154.8-62.1L373.2 565.2l68.6-67.6 171.4 168.9-68.6 67.6zM713.1 658L450.3 399.1 597.6 254l262.8 259-147.3 145z"></path></svg>';
 
-export class BrushWidget extends Widget {
+export class LineDrawWidget extends Widget {
   innerHTML: string = `
       <style>
       .widget-btn {
@@ -16,7 +16,7 @@ export class BrushWidget extends Widget {
           font-size: 16px;
           border-radius: 50%;
           cursor: pointer;
-          path-height: 1.499;
+          line-height: 1.499;
           position: relative;
           display: inline-block;
           font-weight: 500;
@@ -51,7 +51,7 @@ export class BrushWidget extends Widget {
 
   isDrawingLine = false;
 
-  path: Path;
+  line: Line;
 
   mouseDown({ rococo2d, pointer }, next) {
     if (this.isDrawingLine) {
@@ -59,17 +59,17 @@ export class BrushWidget extends Widget {
       rococo2d.deactivateAllWithDispatch();
       rococo2d.renderAll();
       const { x, y } = pointer;
-      this.path = new Path([0, 0, 0, 0], {
+      this.line = new Line([0, 0, 0, 0], {
         top: y,
         left: x,
         strokeWidth: 2,
         originX: "left",
         originY: "top",
       });
-      this.path.setupState();
-      this.path.setCoords();
-      this.path.canvas = rococo2d;
-      rococo2d.renderTop([this.path]);
+      this.line.setupState();
+      this.line.setCoords();
+      this.line.canvas = rococo2d;
+      rococo2d.renderTop([this.line]);
       return;
     } else {
       next();
@@ -77,10 +77,10 @@ export class BrushWidget extends Widget {
   }
 
   mouseMove({ pointer, rococo2d }, next) {
-    if (this.isDrawingLine && this.path) {
+    if (this.isDrawingLine && this.line) {
       const { x, y } = pointer;
-      this.path.setEnd(x - this.path.left, y - this.path.top);
-      rococo2d.renderTop([this.path]);
+      this.line.setEnd(x - this.line.left, y - this.line.top);
+      rococo2d.renderTop([this.line]);
       return;
     } else {
       next();
@@ -89,10 +89,10 @@ export class BrushWidget extends Widget {
 
   mouseUp({ rococo2d }, next) {
     if (this.isDrawingLine) {
-      rococo2d._shapes.push(this.path);
+      rococo2d._shapes.push(this.line);
 
       rococo2d.renderAll();
-      this.path = null;
+      this.line = null;
       // 取消高亮
       rococo2d.renderTop();
       this.rococo2d._activeGroup = null;

@@ -9,7 +9,7 @@
     "deploy": "bash deploy.sh"
   },
   "keywords": [],
-  "author": "",
+  "author": "Seafarer-C",
   "license": "ISC",
   "dependencies": {
     "typescript": "^4.4.3",

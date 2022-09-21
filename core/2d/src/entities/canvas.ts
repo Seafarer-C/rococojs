@@ -91,6 +91,12 @@ export class Canvas extends EventCenter {
   // private _previousOriginX;
   private _previousPointer: Pos;
 
+  // 鼠标处于当下坐标系中的位置
+  private mousePosition: Pos = {
+    x: 0,
+    y: 0,
+  };
+
   /**
    * Window.devicePixelRatio
    * Window 接口的**devicePixelRatio
@@ -104,7 +110,7 @@ export class Canvas extends EventCenter {
   // 上一次的缩放比
   private preScale: number = 1;
 
-  // 距离画布原点的偏移量
+  // 画布内的偏移量
   private _canvasOffset: Offset = {
     left: 0,
     top: 0,
@@ -751,40 +757,38 @@ export class Canvas extends EventCenter {
     object.render(ctx);
   }
 
-  private zoom(is_mouse) {
+  private zoom(is_mouse = false, pointer) {
     // 是否居中放大
-    if (!is_mouse) {
-      // this._offset.left = this.width / 2;
-      // this._offset.top = this.height / 2;
-    }
-
-    // this.offset.x =
-    //   this.mousePosition.x -
-    //   ((this.mousePosition.x - this.offset.x) * this.scale) / this.preScale;
-    // this.offset.y =
-    //   this.mousePosition.y -
-    //   ((this.mousePosition.y - this.offset.y) * this.scale) / this.preScale;
+    // if (!is_mouse) {
+    //   this._canvasOffset.left = this.width / 2;
+    //   this._canvasOffset.top = this.height / 2;
+    // } else {
+    //   this._canvasOffset.left =
+    //     pointer.x -
+    //     ((pointer.x - this._canvasOffset.left) * this.scale) / this.preScale;
+    //   this._canvasOffset.top =
+    //     pointer.y -
+    //     ((pointer.y - this._canvasOffset.top) * this.scale) / this.preScale;
+    // }
 
     this.renderAll();
     // this.preScale = this.scale;
-    // this._currentOffset.x = this.offset.x;
-    // this.currentOffset.y = this.offset.y;
   }
   // 放大
-  zoomIn(is_mouse = false) {
+  zoomIn(is_mouse = false, pointer = undefined) {
     if (this.scaleMax > this.scale) {
       this.scale += this.scaleStep;
-      this.zoom(is_mouse);
+      this.zoom(is_mouse, pointer);
     } else {
       return;
     }
   }
 
   // 缩小
-  zoomOut(is_mouse = false) {
+  zoomOut(is_mouse = false, pointer = undefined) {
     if (this.scaleMin < this.scale) {
       this.scale -= this.scaleStep;
-      this.zoom(is_mouse);
+      this.zoom(is_mouse, pointer);
     } else {
       return;
     }
@@ -825,11 +829,14 @@ export class Canvas extends EventCenter {
 
     this.clearContext(this.mCtx);
 
-    ctxs.forEach((c) => c.save());
-    ctxs.forEach((c) => c.scale(this.scale, this.scale));
-    ctxs.forEach((c) =>
-      c.translate(this._canvasOffset.left, this._canvasOffset.top)
-    );
+    this.mCtx.save();
+    this.mCtx.translate(this._canvasOffset.left, this._canvasOffset.top);
+    this.mCtx.scale(this.scale, this.scale);
+    // ctxs.forEach((c) => c.save());
+    // ctxs.forEach((c) =>
+    //   c.translate(this._canvasOffset.left, this._canvasOffset.top)
+    // );
+    // ctxs.forEach((c) => c.scale(this.scale, this.scale));
 
     // 先绘制未激活物体，再绘制激活物体
     const sortedObjects = this._chooseObjectsToRender();
@@ -837,7 +844,8 @@ export class Canvas extends EventCenter {
       this._draw(this.mCtx, sortedObjects[i]);
     }
 
-    ctxs.forEach((c) => c.restore());
+    this.mCtx.restore();
+    // ctxs.forEach((c) => c.restore());
 
     return this;
   }
@@ -903,9 +911,9 @@ export class Canvas extends EventCenter {
     let ctx = this.tCtx;
     this.clearContext(ctx);
     ctx.save();
-    ctx.scale(this.scale, this.scale);
-    ctx.translate(this._canvasOffset.left, this._canvasOffset.top);
 
+    ctx.translate(this._canvasOffset.left, this._canvasOffset.top);
+    ctx.scale(this.scale, this.scale);
     // 绘制拖蓝选区
     if (this._groupSelector) this.drawSelection();
 

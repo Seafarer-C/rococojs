@@ -6,7 +6,8 @@ import {
   RectDrawWidget,
   Line,
   Path,
-  BrushWidget,
+  Text,
+  LineDrawWidget,
 } from "@rococojs/2d";
 
 window.onload = () => {
@@ -20,7 +21,7 @@ window.onload = () => {
     left: "0px",
     top: "92px",
   });
-  const brushWidget = new BrushWidget().setStyle({
+  const lineDrawWidget = new LineDrawWidget().setStyle({
     left: "0px",
     top: "138px",
   });
@@ -28,7 +29,9 @@ window.onload = () => {
   const canvas = new Rococo2DView(document.getElementById("canvas"), {
     width,
     height,
-    widgets: [zoomWidget, rectdrawWidget, brushWidget],
+    // scale: 2,
+    // preScale: 2,
+    widgets: [zoomWidget, rectdrawWidget, lineDrawWidget],
   });
   const rect = new Rect({
     top: 200,
@@ -67,6 +70,14 @@ window.onload = () => {
       // strokeDashArray: this.strokeDashArray,
     }
   );
+
+  const text = new Text("这是一段非常长的话，啃瓦斯非常有意思，tql yyds", {
+    lineHeight: 28,
+    top: 200,
+    left: 1200,
+    width: 100,
+    height: 100,
+  });
 
   const imgs: Array<RococoImage> = [
     {
@@ -124,10 +135,10 @@ window.onload = () => {
     return new RococoImage(img, ops);
   });
 
-  setTimeout(() => {
-    imgs.forEach((img) => {
-      canvas.add(img);
-    });
-    canvas.add(rect).add(path).add(line);
-  }, 1200);
+  imgs.forEach((img) => {
+    canvas.add(img);
+  });
+  canvas.add(rect).add(path).add(line).add(text);
+
+  text.setActive(true);
 };

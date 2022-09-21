@@ -22,10 +22,10 @@ const babelConfig = {
 module.exports = {
   mode: "development",
   entry: path.resolve("./src/index.ts"),
-  output: {
-    path: __dirname,
-    filename: "../docs/build.js",
-  },
+  // output: {
+  //   path: __dirname,
+  //   filename: "../docs/build.js",
+  // },
   module: {
     rules: [
       {
