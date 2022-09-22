@@ -34,14 +34,14 @@ window.onload = () => {
     widgets: [zoomWidget, rectdrawWidget, lineDrawWidget],
   });
   const rect = new Rect({
-    top: 200,
-    left: 1000,
-    width: 60,
-    height: 60,
+    top: 980,
+    left: 500,
+    width: 400,
+    height: 150,
     fill: "#8920a580",
     rx: 10,
     ry: 10,
-    angle: 45,
+    // angle: 45,
   });
 
   const line = new Line([0, 0, 170, 200], {
@@ -71,13 +71,17 @@ window.onload = () => {
     }
   );
 
-  const text = new Text("这是一段非常长的话，啃瓦斯非常有意思，tql yyds", {
-    lineHeight: 28,
-    top: 200,
-    left: 1200,
-    width: 100,
-    height: 100,
-  });
+  const text = new Text(
+    `🎉🎉🎉🌹🌹🌹                 
+    欢迎使用 Rococojs，您可以长按滚轮拖拽画布移动视角`,
+    {
+      lineHeight: 28,
+      top: 1000,
+      left: 500,
+      width: 300,
+      height: 100,
+    }
+  );
 
   const imgs: Array<RococoImage> = [
     {
@@ -139,6 +143,4 @@ window.onload = () => {
     canvas.add(img);
   });
   canvas.add(rect).add(path).add(line).add(text);
-
-  text.setActive(true);
 };

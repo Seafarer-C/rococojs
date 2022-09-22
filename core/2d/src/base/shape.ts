@@ -443,12 +443,12 @@ export class Shape extends EventCenter {
     ).subtractEquals(new Point(x, y));
   }
   /** 检测哪个控制点被点击了 */
-  _findTargetCorner(e: MouseEvent, offset: Offset): boolean | string {
+  _findTargetCorner(e: MouseEvent): boolean | string {
     if (!this.hasControls || !this.active) return false;
 
-    let pointer = Util.getPointer(e, this.canvas.topCanvas, this.scale),
-      ex = pointer.x - offset.left,
-      ey = pointer.y - offset.top,
+    let pointer = Util.getPointer(e, this.canvas.topCanvas, this.canvas),
+      ex = pointer.x,
+      ey = pointer.y,
       xpoints,
       lines;
 

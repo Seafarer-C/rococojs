@@ -149,7 +149,11 @@ export class Util {
     return parseFloat(Number(number).toFixed(fractionDigits));
   }
   /** 获取鼠标的点击坐标，相对于页面左上角，注意不是画布的左上角，到时候会减掉 offset */
-  static getPointer(event: Event, upperCanvasEl: HTMLCanvasElement, scale = 1) {
+  static getPointer(
+    event: Event,
+    upperCanvasEl: HTMLCanvasElement,
+    { scale = 1, _offset, _canvasOffset }
+  ) {
     event || (event = window.event);
 
     let element: HTMLElement | Document = event.target as
@@ -185,12 +189,60 @@ export class Util {
         scrollTop += (element as HTMLElement).scrollTop || 0;
       }
     }
-
     return {
-      x: Util.pointerX(event) / scale + scrollLeft,
-      y: Util.pointerY(event) / scale + scrollTop,
+      x:
+        (Util.pointerX(event) -
+          _offset.left -
+          _canvasOffset.left +
+          scrollLeft) /
+        scale,
+      y:
+        (Util.pointerY(event) - _offset.top - _canvasOffset.top + scrollTop) /
+        scale,
     };
   }
+
+  static getScroll(upperCanvasEl) {
+    let element: HTMLElement | Document = event.target as
+        | Document
+        | HTMLElement,
+      body = document.body || { scrollLeft: 0, scrollTop: 0 },
+      docElement = document.documentElement,
+      orgElement = element,
+      scrollLeft = 0,
+      scrollTop = 0,
+      firstFixedAncestor;
+
+    while (element && element.parentNode && !firstFixedAncestor) {
+      element = element.parentNode as Document | HTMLElement;
+      if (
+        element !== document &&
+        Util.getElementPosition(element as HTMLElement) === "fixed"
+      )
+        firstFixedAncestor = element;
+
+      if (
+        element !== document &&
+        orgElement !== upperCanvasEl &&
+        Util.getElementPosition(element as HTMLElement) === "absolute"
+      ) {
+        scrollLeft = 0;
+        scrollTop = 0;
+      } else if (element === document && orgElement !== upperCanvasEl) {
+        scrollLeft = body.scrollLeft || docElement.scrollLeft || 0;
+        scrollTop = body.scrollTop || docElement.scrollTop || 0;
+      } else {
+        scrollLeft += (element as HTMLElement).scrollLeft || 0;
+        scrollTop += (element as HTMLElement).scrollTop || 0;
+      }
+
+      return {
+        scrollLeft,
+        scrollTop,
+      };
+    }
+  }
+
   /** 根据矩阵反推出具体变换数值 */
   static qrDecompose(m: number[]): Transform {
     let angle = Math.atan2(m[1], m[0]),

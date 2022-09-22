@@ -7,7 +7,7 @@ enum CursorStyle {
 }
 
 export default {
-  mouseDown: ({ e, rococo2d }, next) => {
+  mouseDown: ({ e, pointer, rococo2d }, next) => {
     next();
     if (rococo2d.action !== "default") return;
     // 只处理左键点击，要么是拖蓝事件、要么是点选事件
@@ -18,7 +18,6 @@ export default {
     if (rococo2d._currentTransform) return;
 
     let target = rococo2d.findTarget(e);
-    let pointer = rococo2d.getPointer(e);
     let corner;
     rococo2d._previousPointer = pointer;
 

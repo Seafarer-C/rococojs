@@ -10,6 +10,7 @@ import {
 } from "../base/interface";
 import { EventCenter } from "../base/event";
 import DefaultPlugin from "../plugins/default.plugin";
+import MovePlugin from "../plugins/move.plugin";
 import { Widget } from "../widgets/widget";
 
 const STROKE_OFFSET = 0.5;
@@ -82,7 +83,10 @@ export class Canvas extends EventCenter {
   /** 画布中所有添加的物体 */
   private _shapes: Shape[] = [];
   /** 整个画布距离原点的偏移量 */
-  private _offset: Offset;
+  private _offset: Offset = {
+    left: 0,
+    top: 0,
+  };
   /** 当前物体的变换信息，src 目录下中有截图 */
   private _currentTransform: CurrentTransform;
   /** 当前激活物体 */
@@ -90,12 +94,6 @@ export class Canvas extends EventCenter {
   /** 变换之前的中心点方式 */
   // private _previousOriginX;
   private _previousPointer: Pos;
-
-  // 鼠标处于当下坐标系中的位置
-  private mousePosition: Pos = {
-    x: 0,
-    y: 0,
-  };
 
   /**
    * Window.devicePixelRatio
@@ -127,10 +125,10 @@ export class Canvas extends EventCenter {
   private scaleStep: number = 0.2;
   // 最大缩放比
   private scaleMax: number = 8;
-  private scaleMin: number = 0.4;
+  private scaleMin: number = 0.8;
 
   // 插件
-  private plugins = [DefaultPlugin];
+  private plugins = [DefaultPlugin, MovePlugin];
   // 挂件
   private widgets: Array<Widget> = [];
 
@@ -233,6 +231,7 @@ export class Canvas extends EventCenter {
     this._handleMouseWheel = this._handleMouseWheel.bind(this);
 
     Util.addListener(window, "resize", this._handleWindowResize);
+
     Util.addListener(this.topCanvas, "mousedown", this._handleMouseDown);
     Util.addListener(this.topCanvas, "mousemove", this._handleMouseMove);
     Util.addListener(
@@ -259,7 +258,7 @@ export class Canvas extends EventCenter {
 
   // 鼠标下压事件
   private _handleMouseDown(e: MouseEvent) {
-    let pointer = Util.getPointer(e, this.topCanvas, this.scale);
+    let pointer = Util.getPointer(e, this.topCanvas, this);
     this._executeCompose("mouseDown", { e, pointer, rococo2d: this });
     Util.addListener(document, "mouseup", this._handleMouseUp);
     // 注销交互层 canvas 的监听事件，注册整个页面的事件，保证鼠标移动到屏幕外时 move 事件依旧执行
@@ -268,7 +267,7 @@ export class Canvas extends EventCenter {
   }
   // 鼠标移动事件
   private _handleMouseMove(e: MouseEvent) {
-    let pointer = Util.getPointer(e, this.topCanvas, this.scale);
+    let pointer = Util.getPointer(e, this.topCanvas, this);
     this._executeCompose("mouseMove", { e, pointer, rococo2d: this });
     e.preventDefault();
   }
@@ -282,7 +281,7 @@ export class Canvas extends EventCenter {
   }
   // 鼠标滚轮事件
   private _handleMouseWheel(e: MouseEvent) {
-    let pointer = Util.getPointer(e, this.topCanvas, this.scale);
+    let pointer = Util.getPointer(e, this.topCanvas, this);
     this._executeCompose("mouseWheel", { e, pointer, rococo2d: this });
   }
   // 窗口缩放事件
@@ -363,7 +362,6 @@ export class Canvas extends EventCenter {
    */
   scaleObject(x: number, y: number, by = "equally") {
     let t = this._currentTransform,
-      offset = this._offset,
       target: Shape = t.target;
 
     // 缩放基点：比如拖拽右边中间的控制点，其实我们参考的变换基点是左边中间的控制点
@@ -373,11 +371,7 @@ export class Canvas extends EventCenter {
       t.originY
     );
     // 以物体变换中心为原点的鼠标点坐标值
-    let localMouse = target.toLocalPoint(
-      new Point(x - offset.left, y - offset.top),
-      t.originX,
-      t.originY
-    );
+    let localMouse = target.toLocalPoint(new Point(x, y), t.originX, t.originY);
 
     if (t.originX === "right") {
       localMouse.x *= -1;
@@ -447,11 +441,10 @@ export class Canvas extends EventCenter {
   /** 旋转当前选中物体，这里用的是 += */
   rotateObject(x: number, y: number) {
     const t = this._currentTransform;
-    const o = this._offset;
     // 鼠标按下的点与物体中心点连线和 x 轴正方向形成的弧度
-    const lastAngle = Math.atan2(t.ey - o.top - t.top, t.ex - o.left - t.left);
+    const lastAngle = Math.atan2(t.ey - t.top, t.ex - t.left);
     // 鼠标拖拽的终点与物体中心点连线和 x 轴正方向形成的弧度
-    const curAngle = Math.atan2(y - o.top - t.top, x - o.left - t.left);
+    const curAngle = Math.atan2(y - t.top, x - t.left);
     let angle = Util.radiansToDegrees(curAngle - lastAngle + t.theta); // 新的角度 = 变换的角度 + 原来的角度
     if (angle < 0) {
       angle = 360 + angle;
@@ -502,9 +495,9 @@ export class Canvas extends EventCenter {
   setupCurrentTransform(e: MouseEvent, target: Shape) {
     let action = "drag",
       corner,
-      pointer = Util.getPointer(e, target.canvas.topCanvas, this.scale);
+      pointer = Util.getPointer(e, target.canvas.topCanvas, this);
 
-    corner = target._findTargetCorner(e, this._offset);
+    corner = target._findTargetCorner(e);
     if (corner) {
       // 根据点击的控制点判断此次操作是什么
       action =
@@ -759,20 +752,20 @@ export class Canvas extends EventCenter {
 
   private zoom(is_mouse = false, pointer) {
     // 是否居中放大
-    // if (!is_mouse) {
-    //   this._canvasOffset.left = this.width / 2;
-    //   this._canvasOffset.top = this.height / 2;
-    // } else {
-    //   this._canvasOffset.left =
-    //     pointer.x -
-    //     ((pointer.x - this._canvasOffset.left) * this.scale) / this.preScale;
-    //   this._canvasOffset.top =
-    //     pointer.y -
-    //     ((pointer.y - this._canvasOffset.top) * this.scale) / this.preScale;
-    // }
+    if (!is_mouse) {
+      // this._canvasOffset.left = this.width / 2;
+      // this._canvasOffset.top = this.height / 2;
+    } else {
+      this._canvasOffset.left =
+        pointer.x -
+        ((pointer.x - this._canvasOffset.left) * this.scale) / this.preScale;
+      this._canvasOffset.top =
+        pointer.y -
+        ((pointer.y - this._canvasOffset.top) * this.scale) / this.preScale;
+    }
 
     this.renderAll();
-    // this.preScale = this.scale;
+    this.preScale = this.scale;
   }
   // 放大
   zoomIn(is_mouse = false, pointer = undefined) {
@@ -822,21 +815,17 @@ export class Canvas extends EventCenter {
 
   /** 大部分是在 main-canvas 上先画未激活物体，再画激活物体 */
   renderAll(): Canvas {
-    const ctxs = [this.mCtx, this.cCtx, this.tCtx];
+    const ctxs = [this.mCtx, this.cCtx /** this.tCtx */];
     if (this.tCtx) {
       this.clearContext(this.tCtx);
     }
 
     this.clearContext(this.mCtx);
-
-    this.mCtx.save();
-    this.mCtx.translate(this._canvasOffset.left, this._canvasOffset.top);
-    this.mCtx.scale(this.scale, this.scale);
-    // ctxs.forEach((c) => c.save());
-    // ctxs.forEach((c) =>
-    //   c.translate(this._canvasOffset.left, this._canvasOffset.top)
-    // );
-    // ctxs.forEach((c) => c.scale(this.scale, this.scale));
+    ctxs.forEach((c) => c.save());
+    ctxs.forEach((c) =>
+      c.translate(this._canvasOffset.left, this._canvasOffset.top)
+    );
+    ctxs.forEach((c) => c.scale(this.scale, this.scale));
 
     // 先绘制未激活物体，再绘制激活物体
     const sortedObjects = this._chooseObjectsToRender();
@@ -844,16 +833,15 @@ export class Canvas extends EventCenter {
       this._draw(this.mCtx, sortedObjects[i]);
     }
 
-    this.mCtx.restore();
-    // ctxs.forEach((c) => c.restore());
+    ctxs.forEach((c) => c.restore());
 
     return this;
   }
   getPointer(e: MouseEvent): Pos {
-    let pointer = Util.getPointer(e, this.topCanvas, this.scale);
+    let pointer = Util.getPointer(e, this.topCanvas, this);
     return {
-      x: pointer.x - this._offset.left,
-      y: pointer.y - this._offset.top,
+      x: pointer.x,
+      y: pointer.y,
     };
   }
   /** 检测是否有物体在鼠标位置 */
@@ -895,10 +883,7 @@ export class Canvas extends EventCenter {
 
     // if xcount is odd then we clicked inside the object
     // For the specific case of square images xcount === 1 in all true cases
-    if (
-      (xpoints && xpoints % 2 === 1) ||
-      target._findTargetCorner(e, this._offset)
-    ) {
+    if ((xpoints && xpoints % 2 === 1) || target._findTargetCorner(e)) {
       return true;
     }
     return false;
@@ -912,7 +897,11 @@ export class Canvas extends EventCenter {
     this.clearContext(ctx);
     ctx.save();
 
-    ctx.translate(this._canvasOffset.left, this._canvasOffset.top);
+    const { scrollLeft, scrollTop } = Util.getScroll(this.topCanvas);
+    ctx.translate(
+      scrollLeft + this._offset.left + this._canvasOffset.left,
+      scrollTop + this._offset.top + this._canvasOffset.top
+    );
     ctx.scale(this.scale, this.scale);
     // 绘制拖蓝选区
     if (this._groupSelector) this.drawSelection();
@@ -985,7 +974,7 @@ export class Canvas extends EventCenter {
       let activeGroup = this.getActiveGroup();
       let corner =
         (!activeGroup || !activeGroup.contains(target)) &&
-        target._findTargetCorner(e, this._offset);
+        target._findTargetCorner(e);
 
       if (corner) {
         corner = corner as string;
