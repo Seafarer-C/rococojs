@@ -10,7 +10,7 @@ import {
 } from "../base/interface";
 import { EventCenter } from "../base/event";
 import DefaultPlugin from "../plugins/default.plugin";
-import MovePlugin from "../plugins/move.plugin";
+import GrabPlugin from "../plugins/grab.plugin";
 import { Widget } from "../widgets/widget";
 
 const STROKE_OFFSET = 0.5;
@@ -128,7 +128,7 @@ export class Canvas extends EventCenter {
   private scaleMin: number = 0.8;
 
   // 插件
-  private plugins = [DefaultPlugin, MovePlugin];
+  private plugins = [DefaultPlugin, GrabPlugin];
   // 挂件
   private widgets: Array<Widget> = [];
 
